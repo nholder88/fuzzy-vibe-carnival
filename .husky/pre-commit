@@ -1,0 +1,6 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Run lint on frontend
+echo "Running frontend linting..."
+cd frontend && npm run lint || exit 1 
