@@ -1,4 +1,9 @@
 ---
+description: 
+globs: 
+alwaysApply: false
+---
+---
 description: Rules for naming components and structuring directories within the src/components folder, including conventions for lowercase names with dashes.
 globs: src/components/**/*
 ---

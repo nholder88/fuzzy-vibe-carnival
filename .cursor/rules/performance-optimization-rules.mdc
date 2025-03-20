@@ -1,4 +1,9 @@
 ---
+description: 
+globs: 
+alwaysApply: false
+---
+---
 description: Rules for performance optimization in Next.js applications, including minimizing client-side logic, using Suspense, and optimizing images.
 globs: **/*.{ts,tsx,js,jsx}
 ---

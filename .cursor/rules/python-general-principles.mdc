@@ -1,4 +1,9 @@
 ---
+description: 
+globs: 
+alwaysApply: false
+---
+---
 description: General Python coding principles for all Python files, focusing on code style and best practices.
 globs: **/*.py
 ---

@@ -1,4 +1,9 @@
 ---
+description: 
+globs: 
+alwaysApply: false
+---
+---
 description: General rules for TypeScript, Node.js, and Next.js projects, covering code style, naming conventions, and TypeScript usage.
 globs: **/*.{ts,tsx,js,jsx}
 ---

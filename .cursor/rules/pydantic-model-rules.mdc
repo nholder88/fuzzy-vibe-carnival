@@ -1,4 +1,9 @@
 ---
+description: 
+globs: 
+alwaysApply: false
+---
+---
 description: Specific rules for creating Pydantic models, focusing on versioning and usage within the project.
 globs: **/models/*.py
 ---

@@ -1,4 +1,9 @@
 ---
+description: 
+globs: 
+alwaysApply: false
+---
+---
 description: Rules for adhering to Next.js conventions, including data fetching, rendering, routing, and using 'nuqs' for URL search parameter state management.
 globs: src/**/*
 ---

@@ -1,4 +1,9 @@
 ---
+description: 
+globs: 
+alwaysApply: false
+---
+---
 description: Specific guidelines for FastAPI application structure and setup in the main application file.
 globs: **/main.py
 ---

@@ -1,4 +1,9 @@
 ---
+description: 
+globs: 
+alwaysApply: false
+---
+---
 description: Defines the core technologies and configurations used in the Next.js project setup, including TypeScript, Tailwind CSS, and App Router.
 globs: next.config.js
 ---
