@@ -1,0 +1,50 @@
+{
+  "name": "Home Organization System Dev Environment",
+  "dockerComposeFile": ["../docker-compose.yml", "./docker-compose.extend.yml"],
+  "service": "frontend",
+  "workspaceFolder": "/app",
+  "remoteUser": "node",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "ms-azuretools.vscode-docker",
+        "ms-vscode.vscode-typescript-next",
+        "ms-dotnettools.csharp",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "redhat.vscode-yaml",
+        "hashicorp.terraform",
+        "eamodio.gitlens",
+        "github.copilot"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.fixAll.eslint": true
+        },
+        "typescript.tsdk": "node_modules/typescript/lib",
+        "python.linting.enabled": true,
+        "python.linting.pylintEnabled": true,
+        "csharp.format.enable": true
+      }
+    }
+  },
+  "forwardPorts": [3000, 3001, 3002, 5000, 8000, 5432, 6379, 9092, 5050, 8080],
+  "postCreateCommand": "npm install",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "lts"
+    },
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.10"
+    },
+    "ghcr.io/devcontainers/features/dotnet:1": {
+      "version": "7.0"
+    },
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "version": "latest"
+    }
+  }
+}
