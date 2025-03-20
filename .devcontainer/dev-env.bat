@@ -15,4 +15,11 @@ if "%~1"=="" (
 )
 
 powershell -ExecutionPolicy Bypass -File "%~dp0\dev-env.ps1" %*
-exit /b %ERRORLEVEL% 
+set POWERSHELL_EXIT_CODE=%ERRORLEVEL%
+
+if %POWERSHELL_EXIT_CODE% neq 0 (
+  echo Process completed with errors. Exit code: %POWERSHELL_EXIT_CODE%
+  exit /b %POWERSHELL_EXIT_CODE%
+)
+
+exit /b 0 
