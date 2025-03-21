@@ -102,13 +102,11 @@ export default function ChoreManager({ householdId }: ChoreManagerProps) {
   };
 
   if (loading) {
-    return (
-      <div className='w-full text-center py-8'>Loading chore management...</div>
-    );
+    return <div className='text-center py-8'>Loading chore management...</div>;
   }
 
   if (error) {
-    return <div className='w-full text-center py-8 text-red-500'>{error}</div>;
+    return <div className='text-center py-8 text-red-500'>{error}</div>;
   }
 
   return (

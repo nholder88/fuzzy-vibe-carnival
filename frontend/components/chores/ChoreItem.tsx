@@ -2,17 +2,18 @@ import React from 'react';
 import { Chore } from '../../lib/types';
 import { Card, CardContent } from '../ui/card';
 import { Badge } from '../ui/badge';
+import { cn } from '../../lib/utils';
 
 const priorityVariants = {
-  low: 'bg-green-100 text-green-800 hover:bg-green-100',
-  medium: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100',
-  high: 'bg-red-100 text-red-800 hover:bg-red-100',
+  low: 'bg-green-100 text-green-800',
+  medium: 'bg-yellow-100 text-yellow-800',
+  high: 'bg-red-100 text-red-800',
 };
 
 const statusVariants = {
-  pending: 'bg-gray-100 text-gray-800 hover:bg-gray-100',
-  in_progress: 'bg-blue-100 text-blue-800 hover:bg-blue-100',
-  completed: 'bg-green-100 text-green-800 hover:bg-green-100',
+  pending: 'bg-gray-100 text-gray-800',
+  in_progress: 'bg-blue-100 text-blue-800',
+  completed: 'bg-green-100 text-green-800',
 };
 
 interface ChoreItemProps {
@@ -32,9 +33,10 @@ export default function ChoreItem({ chore, onClick }: ChoreItemProps) {
 
   return (
     <Card
-      className={`cursor-pointer hover:shadow-md transition-shadow ${
+      className={cn(
+        'cursor-pointer hover:shadow-md transition-shadow',
         isOverdue ? 'border-red-300' : 'border-gray-200'
-      }`}
+      )}
       onClick={onClick}
     >
       <CardContent className='p-4'>
@@ -65,18 +67,15 @@ export default function ChoreItem({ chore, onClick }: ChoreItemProps) {
         <div className='mt-4 flex justify-between items-center text-sm'>
           <div>
             <span
-              className={`${
+              className={cn(
                 isOverdue ? 'text-red-600 font-semibold' : 'text-gray-500'
-              }`}
+              )}
             >
               Due: {formattedDueDate}
             </span>
           </div>
           {chore.recurring !== 'none' && (
-            <Badge
-              variant='outline'
-              className='bg-purple-100 text-purple-600 hover:bg-purple-100'
-            >
+            <Badge variant='outline' className='bg-purple-100 text-purple-600'>
               {chore.recurring.charAt(0).toUpperCase() +
                 chore.recurring.slice(1)}
             </Badge>

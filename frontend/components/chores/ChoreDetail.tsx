@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Table, TableBody, TableCell, TableRow } from '../ui/table';
+import { cn } from '../../lib/utils';
 
 interface ChoreDetailProps {
   chore: Chore;
@@ -14,15 +15,15 @@ interface ChoreDetailProps {
 }
 
 const priorityVariants = {
-  low: 'bg-green-100 text-green-800 hover:bg-green-100',
-  medium: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100',
-  high: 'bg-red-100 text-red-800 hover:bg-red-100',
+  low: 'bg-green-100 text-green-800',
+  medium: 'bg-yellow-100 text-yellow-800',
+  high: 'bg-red-100 text-red-800',
 };
 
 const statusVariants = {
-  pending: 'bg-gray-100 text-gray-800 hover:bg-gray-100',
-  in_progress: 'bg-blue-100 text-blue-800 hover:bg-blue-100',
-  completed: 'bg-green-100 text-green-800 hover:bg-green-100',
+  pending: 'bg-gray-100 text-gray-800',
+  in_progress: 'bg-blue-100 text-blue-800',
+  completed: 'bg-green-100 text-green-800',
 };
 
 export default function ChoreDetail({
@@ -97,7 +98,7 @@ export default function ChoreDetail({
             {chore.recurring !== 'none' && (
               <Badge
                 variant='outline'
-                className='bg-purple-100 text-purple-800 hover:bg-purple-100'
+                className='bg-purple-100 text-purple-800'
               >
                 {chore.recurring.charAt(0).toUpperCase() +
                   chore.recurring.slice(1)}
@@ -122,9 +123,9 @@ export default function ChoreDetail({
           <div>
             <h3 className='font-semibold mb-2'>Due Date</h3>
             <p
-              className={`${
+              className={cn(
                 isOverdue ? 'text-red-600 font-semibold' : 'text-gray-700'
-              }`}
+              )}
             >
               {formattedDueDate}
             </p>

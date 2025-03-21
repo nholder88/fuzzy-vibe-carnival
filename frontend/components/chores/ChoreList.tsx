@@ -45,23 +45,23 @@ export default function ChoreList({
       : chores.filter((chore) => chore.status === filter);
 
   if (loading) {
-    return <div className='w-full text-center py-8'>Loading chores...</div>;
+    return <div className='text-center py-8'>Loading chores...</div>;
   }
 
   if (error) {
-    return <div className='w-full text-center py-8 text-red-500'>{error}</div>;
+    return <div className='text-center py-8 text-red-500'>{error}</div>;
   }
 
   if (chores.length === 0) {
     return (
-      <div className='w-full text-center py-8'>
+      <div className='text-center py-8'>
         No chores found. Create your first chore!
       </div>
     );
   }
 
   return (
-    <div className='w-full'>
+    <div>
       <div className='flex justify-between items-center mb-6'>
         <h2 className='text-2xl font-semibold'>Household Chores</h2>
         <Tabs
@@ -69,7 +69,6 @@ export default function ChoreList({
           onValueChange={(value) =>
             setFilter(value as 'all' | 'pending' | 'in_progress' | 'completed')
           }
-          className='w-auto'
         >
           <TabsList>
             <TabsTrigger value='all'>All</TabsTrigger>

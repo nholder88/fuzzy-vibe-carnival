@@ -151,10 +151,7 @@ export default function ChoreForm({
       {error && <div className='text-red-500 text-sm'>{error}</div>}
 
       <div className='space-y-2'>
-        <label
-          htmlFor='title'
-          className='block text-sm font-medium text-gray-700'
-        >
+        <label htmlFor='title' className='block text-sm font-medium'>
           Title <span className='text-red-500'>*</span>
         </label>
         <Input
@@ -163,15 +160,12 @@ export default function ChoreForm({
           {...register('title', { required: 'Title is required' })}
         />
         {errors.title && (
-          <p className='text-red-500 text-xs mt-1'>{errors.title.message}</p>
+          <p className='text-red-500 text-xs'>{errors.title.message}</p>
         )}
       </div>
 
       <div className='space-y-2'>
-        <label
-          htmlFor='description'
-          className='block text-sm font-medium text-gray-700'
-        >
+        <label htmlFor='description' className='block text-sm font-medium'>
           Description
         </label>
         <Textarea id='description' rows={3} {...register('description')} />
@@ -179,10 +173,7 @@ export default function ChoreForm({
 
       <div className='grid grid-cols-2 gap-4'>
         <div className='space-y-2'>
-          <label
-            htmlFor='priority'
-            className='block text-sm font-medium text-gray-700'
-          >
+          <label htmlFor='priority' className='block text-sm font-medium'>
             Priority <span className='text-red-500'>*</span>
           </label>
           <Select
@@ -205,10 +196,7 @@ export default function ChoreForm({
         </div>
 
         <div className='space-y-2'>
-          <label
-            htmlFor='status'
-            className='block text-sm font-medium text-gray-700'
-          >
+          <label htmlFor='status' className='block text-sm font-medium'>
             Status <span className='text-red-500'>*</span>
           </label>
           <Select
@@ -233,20 +221,14 @@ export default function ChoreForm({
 
       <div className='grid grid-cols-2 gap-4'>
         <div className='space-y-2'>
-          <label
-            htmlFor='due_date'
-            className='block text-sm font-medium text-gray-700'
-          >
+          <label htmlFor='due_date' className='block text-sm font-medium'>
             Due Date
           </label>
           <Input id='due_date' type='date' {...register('due_date')} />
         </div>
 
         <div className='space-y-2'>
-          <label
-            htmlFor='recurring'
-            className='block text-sm font-medium text-gray-700'
-          >
+          <label htmlFor='recurring' className='block text-sm font-medium'>
             Recurring
           </label>
           <Select
@@ -271,10 +253,7 @@ export default function ChoreForm({
       </div>
 
       <div className='space-y-2'>
-        <label
-          htmlFor='assigned_to'
-          className='block text-sm font-medium text-gray-700'
-        >
+        <label htmlFor='assigned_to' className='block text-sm font-medium'>
           Assign To
         </label>
         <Select value={assignedTo} onValueChange={setAssignedTo}>
