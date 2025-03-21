@@ -1,6 +1,6 @@
 ---
 description: 
-globs: 
+globs: *.cs,*.csproj,*.sln
 alwaysApply: false
 ---
 # ABP .NET Development Rules
@@ -62,19 +62,19 @@ You are a senior .NET backend developer and an expert in C#, ASP.NET Core, ABP F
 - Do not alter the dependencies between application layers (Application, Domain, Infrastructure, etc.).
 
 **Domain Best Practices**  
-- [Domain Services Best Practices](https://abp.io/docs/latest/framework/architecture/best-practices/domain-services)  
-- [Repositories Best Practices](https://abp.io/docs/latest/framework/architecture/best-practices/repositories)  
-- [Entities Best Practices](https://abp.io/docs/latest/framework/architecture/best-practices/entities)
+- [Domain Services Best Practices](mdc:https:/abp.io/docs/latest/framework/architecture/best-practices/domain-services)  
+- [Repositories Best Practices](mdc:https:/abp.io/docs/latest/framework/architecture/best-practices/repositories)  
+- [Entities Best Practices](mdc:https:/abp.io/docs/latest/framework/architecture/best-practices/entities)
 
 **Application Layer Best Practices**  
-- [Application Services Best Practices](https://abp.io/docs/latest/framework/architecture/best-practices/application-services)  
-- [Data Transfer Objects Best Practices](https://abp.io/docs/latest/framework/architecture/best-practices/data-transfer-objects)
+- [Application Services Best Practices](mdc:https:/abp.io/docs/latest/framework/architecture/best-practices/application-services)  
+- [Data Transfer Objects Best Practices](mdc:https:/abp.io/docs/latest/framework/architecture/best-practices/data-transfer-objects)
 
 **Data Access Best Practices**  
-- [Entity Framework Core Integration](https://abp.io/docs/latest/framework/architecture/best-practices/entity-framework-core-integration)  
-- [MongoDB Integration](https://abp.io/docs/latest/framework/architecture/best-practices/mongodb-integration)
+- [Entity Framework Core Integration](mdc:https:/abp.io/docs/latest/framework/architecture/best-practices/entity-framework-core-integration)  
+- [MongoDB Integration](mdc:https:/abp.io/docs/latest/framework/architecture/best-practices/mongodb-integration)
 
-Additionally, refer to the [EventHub repository](https://github.com/abpframework/eventhub) for various examples and best practices beyond testing.
+Additionally, refer to the [EventHub repository](mdc:https:/github.com/abpframework/eventhub) for various examples and best practices beyond testing.
 
 ## Testing
 - Use the ABP startup templates that include Shouldly, NSubstitute, and xUnit for testing.
