@@ -137,26 +137,23 @@ export default function ChoreManager({ householdId }: ChoreManagerProps) {
       )}
 
       {(view === 'create' || view === 'edit') && (
-        <Card>
-          <CardContent className='p-6'>
-            <div className='mb-4'>
-              <Button
-                onClick={() => setView(selectedChore ? 'detail' : 'list')}
-                variant='ghost'
-                className='p-0 flex items-center text-blue-600 hover:text-blue-800'
-              >
-                <span>← Back</span>
-              </Button>
-            </div>
-            <ChoreForm
-              householdId={householdId}
-              chore={view === 'edit' ? selectedChore || undefined : undefined}
-              users={users}
-              onSuccess={handleFormSuccess}
-              onCancel={() => setView(selectedChore ? 'detail' : 'list')}
-            />
-          </CardContent>
-        </Card>
+        <div>
+          <Button
+            onClick={() => setView(selectedChore ? 'detail' : 'list')}
+            variant='ghost'
+            className='p-0 mb-4 flex items-center text-blue-600 hover:text-blue-800'
+          >
+            <span>← Back</span>
+          </Button>
+
+          <ChoreForm
+            householdId={householdId}
+            chore={view === 'edit' ? selectedChore || undefined : undefined}
+            users={users}
+            onSuccess={handleFormSuccess}
+            onCancel={() => setView(selectedChore ? 'detail' : 'list')}
+          />
+        </div>
       )}
     </div>
   );

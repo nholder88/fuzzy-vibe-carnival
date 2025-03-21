@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../ui/select';
-import { Card, CardContent } from '../ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 
 interface ChoreFormProps {
   householdId: string;
@@ -21,6 +21,7 @@ interface ChoreFormProps {
   users: User[];
   onSuccess: () => void;
   onCancel: () => void;
+  isEmbedded?: boolean;
 }
 
 type ChoreFormValues = {
@@ -39,6 +40,7 @@ export default function ChoreForm({
   users,
   onSuccess,
   onCancel,
+  isEmbedded = false,
 }: ChoreFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -142,12 +144,8 @@ export default function ChoreForm({
     }
   };
 
-  return (
+  const formContent = (
     <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
-      <h2 className='text-xl font-semibold'>
-        {chore ? 'Edit Chore' : 'Add New Chore'}
-      </h2>
-
       {error && <div className='text-red-500 text-sm'>{error}</div>}
 
       <div className='space-y-2'>
@@ -287,5 +285,20 @@ export default function ChoreForm({
         </Button>
       </div>
     </form>
+  );
+
+  // If the component is embedded in another Card, just return the form
+  if (isEmbedded) {
+    return formContent;
+  }
+
+  // Otherwise, wrap it in a Card
+  return (
+    <Card className='max-w-2xl mx-auto shadow-md'>
+      <CardHeader>
+        <CardTitle>{chore ? 'Edit Chore' : 'Add New Chore'}</CardTitle>
+      </CardHeader>
+      <CardContent>{formContent}</CardContent>
+    </Card>
   );
 }
