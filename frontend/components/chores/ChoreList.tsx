@@ -1,93 +1,99 @@
-import { useState, useEffect } from 'react';
-import { Chore } from '../../lib/types';
-import { getChores } from '../../lib/api/chores';
-import ChoreItem from './ChoreItem';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-import { Button } from '../ui/button';
+import React, { useEffect } from 'react';
+import { useChores } from '@/context/ChoresContext';
+import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import ChoreCard from './ChoreCard';
 
-type ChoreListProps = {
+interface ChoreListProps {
   householdId: string;
-  onChoreSelect?: (chore: Chore) => void;
-};
+  filterCompleted: boolean | null;
+}
 
 export default function ChoreList({
   householdId,
-  onChoreSelect,
+  filterCompleted,
 }: ChoreListProps) {
-  const [chores, setChores] = useState<Chore[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [filter, setFilter] = useState<
-    'all' | 'pending' | 'in_progress' | 'completed'
-  >('all');
+  const {
+    chores,
+    isLoading,
+    error,
+    fetchChores,
+    markChoreAsCompleted,
+    deleteChore,
+    householdMembers,
+    filters,
+  } = useChores();
 
   useEffect(() => {
-    const fetchChores = async () => {
-      try {
-        setLoading(true);
-        const data = await getChores(householdId);
-        setChores(data);
-        setError(null);
-      } catch (err) {
-        setError('Failed to load chores. Please try again later.');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
+    // Apply the completed filter if specified
+    const updatedFilters = { ...filters };
+    if (filterCompleted !== null) {
+      updatedFilters.completed = filterCompleted;
+    }
 
-    fetchChores();
-  }, [householdId]);
+    fetchChores(householdId);
+  }, [householdId, fetchChores, filterCompleted, filters]);
 
-  const filteredChores =
-    filter === 'all'
-      ? chores
-      : chores.filter((chore) => chore.status === filter);
-
-  if (loading) {
-    return <div className='text-center py-8'>Loading chores...</div>;
-  }
-
-  if (error) {
-    return <div className='text-center py-8 text-red-500'>{error}</div>;
-  }
-
-  if (chores.length === 0) {
+  if (isLoading && chores.length === 0) {
     return (
-      <div className='text-center py-8'>
-        No chores found. Create your first chore!
+      <div className='space-y-4'>
+        {[...Array(3)].map((_, i) => (
+          <Card key={i} className='overflow-hidden'>
+            <CardContent className='p-6'>
+              <div className='flex items-center gap-4'>
+                <Skeleton className='h-5 w-5 rounded-full' />
+                <div className='space-y-2 flex-1'>
+                  <Skeleton className='h-4 w-1/3' />
+                  <Skeleton className='h-3 w-2/3' />
+                </div>
+                <Skeleton className='h-9 w-20' />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
     );
   }
 
-  return (
-    <div>
-      <div className='flex justify-between items-center mb-6'>
-        <h2 className='text-2xl font-semibold'>Household Chores</h2>
-        <Tabs
-          defaultValue={filter}
-          onValueChange={(value) =>
-            setFilter(value as 'all' | 'pending' | 'in_progress' | 'completed')
-          }
-        >
-          <TabsList>
-            <TabsTrigger value='all'>All</TabsTrigger>
-            <TabsTrigger value='pending'>Pending</TabsTrigger>
-            <TabsTrigger value='in_progress'>In Progress</TabsTrigger>
-            <TabsTrigger value='completed'>Completed</TabsTrigger>
-          </TabsList>
-        </Tabs>
-      </div>
+  if (error) {
+    return <div className='text-red-500 p-4 rounded bg-red-50'>{error}</div>;
+  }
 
-      <div className='space-y-4'>
-        {filteredChores.map((chore) => (
-          <ChoreItem
+  if (chores.length === 0) {
+    return (
+      <div className='text-center p-8'>
+        <h3 className='text-lg font-medium'>No chores found</h3>
+        <p className='text-gray-500 mt-2'>
+          No chores match your current filters.
+        </p>
+      </div>
+    );
+  }
+
+  const getAssignedMember = (assignedToId: string | null) => {
+    if (!assignedToId) return null;
+    const member = householdMembers.find(
+      (member) => member.id === assignedToId
+    );
+    return member || null;
+  };
+
+  return (
+    <div className='space-y-4' data-testid='chore-list'>
+      {chores.map((chore) => {
+        const assignedMember = getAssignedMember(chore.assignedTo);
+
+        return (
+          <ChoreCard
             key={chore.id}
             chore={chore}
-            onClick={() => onChoreSelect && onChoreSelect(chore)}
+            assignedMember={assignedMember}
+            onMarkCompleted={markChoreAsCompleted}
+            onDelete={deleteChore}
+            householdId={householdId}
           />
-        ))}
-      </div>
+        );
+      })}
     </div>
   );
 }

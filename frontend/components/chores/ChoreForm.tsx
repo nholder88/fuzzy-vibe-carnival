@@ -1,304 +1,263 @@
-import React, { useState, useEffect } from 'react';
-import { useForm, SubmitHandler } from 'react-hook-form';
-import { Chore, User } from '../../lib/types';
-import { createChore, updateChore } from '../../lib/api/chores';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Textarea } from '../ui/textarea';
+import React, { useEffect, useState } from 'react';
+import { useChores } from '@/context/ChoresContext';
+import { Chore, ChoreFormData } from '@/types/chores';
+import { useForm } from 'react-hook-form';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '../ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+} from '@/components/ui/select';
+import { format } from 'date-fns';
 
 interface ChoreFormProps {
   householdId: string;
-  chore?: Chore;
-  users: User[];
-  onSuccess: () => void;
-  onCancel: () => void;
-  isEmbedded?: boolean;
+  onClose?: () => void;
+  choreId?: string;
+  initialData?: Chore;
 }
-
-type ChoreFormValues = {
-  title: string;
-  description: string;
-  assigned_to: string;
-  status: 'pending' | 'in_progress' | 'completed';
-  due_date: string;
-  priority: 'low' | 'medium' | 'high';
-  recurring: 'none' | 'daily' | 'weekly' | 'monthly';
-};
 
 export default function ChoreForm({
   householdId,
-  chore,
-  users,
-  onSuccess,
-  onCancel,
-  isEmbedded = false,
+  onClose,
+  choreId,
+  initialData,
 }: ChoreFormProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { addChore, updateChore, householdMembers, categories } = useChores();
 
-  // Custom state for select fields since they're managed differently with shadcn
-  const [priority, setPriority] = useState<'low' | 'medium' | 'high'>(
-    chore?.priority || 'medium'
-  );
-  const [status, setStatus] = useState<'pending' | 'in_progress' | 'completed'>(
-    chore?.status || 'pending'
-  );
-  const [recurring, setRecurring] = useState<
-    'none' | 'daily' | 'weekly' | 'monthly'
-  >(chore?.recurring || 'none');
-  const [assignedTo, setAssignedTo] = useState<string>(
-    chore?.assigned_to || 'unassigned'
+  const isEditMode = !!choreId;
+  const [isRecurring, setIsRecurring] = useState(
+    initialData?.recurring || false
   );
 
   const {
     register,
     handleSubmit,
-    reset,
     setValue,
     formState: { errors },
-  } = useForm<ChoreFormValues>({
-    defaultValues: chore
+  } = useForm<ChoreFormData>({
+    defaultValues: initialData
       ? {
-          title: chore.title,
-          description: chore.description || '',
-          assigned_to: chore.assigned_to || '',
-          status: chore.status,
-          due_date: chore.due_date
-            ? new Date(chore.due_date).toISOString().split('T')[0]
-            : '',
-          priority: chore.priority,
-          recurring: chore.recurring,
+          title: initialData.title,
+          description: initialData.description,
+          assignedTo: initialData.assignedTo,
+          dueDate: initialData.dueDate
+            ? format(new Date(initialData.dueDate), 'yyyy-MM-dd')
+            : null,
+          recurring: initialData.recurring,
+          recurrencePattern: initialData.recurrencePattern,
+          priority: initialData.priority,
+          category: initialData.category,
         }
       : {
           title: '',
           description: '',
-          assigned_to: '',
-          status: 'pending',
-          due_date: '',
+          assignedTo: null,
+          dueDate: null,
+          recurring: false,
+          recurrencePattern: 'daily',
           priority: 'medium',
-          recurring: 'none',
+          category: 'General',
         },
   });
 
   useEffect(() => {
-    if (chore) {
-      reset({
-        title: chore.title,
-        description: chore.description || '',
-        assigned_to: chore.assigned_to || '',
-        status: chore.status,
-        due_date: chore.due_date
-          ? new Date(chore.due_date).toISOString().split('T')[0]
-          : '',
-        priority: chore.priority,
-        recurring: chore.recurring,
-      });
+    register('title', { required: 'Title is required' });
+    register('description');
+    register('assignedTo');
+    register('dueDate');
+    register('recurring');
+    register('recurrencePattern');
+    register('priority');
+    register('category');
+  }, [register]);
 
-      setPriority(chore.priority);
-      setStatus(chore.status);
-      setRecurring(chore.recurring);
-      setAssignedTo(chore.assigned_to || 'unassigned');
-    }
-  }, [chore, reset]);
-
-  // Update form values when selects change
-  useEffect(() => {
-    setValue('priority', priority);
-    setValue('status', status);
-    setValue('recurring', recurring);
-    setValue('assigned_to', assignedTo === 'unassigned' ? '' : assignedTo);
-  }, [priority, status, recurring, assignedTo, setValue]);
-
-  const onSubmit: SubmitHandler<ChoreFormValues> = async (data) => {
+  const onSubmit = async (data: ChoreFormData) => {
     try {
-      setIsSubmitting(true);
-      setError(null);
-
-      if (chore) {
-        await updateChore(chore.id, {
-          ...data,
-          household_id: householdId,
-        });
+      if (isEditMode && choreId) {
+        await updateChore(choreId, data);
       } else {
-        await createChore({
-          ...data,
-          household_id: householdId,
-        });
+        await addChore(householdId, data);
       }
-
-      onSuccess();
-    } catch (err) {
-      setError('Failed to save chore. Please try again.');
-      console.error(err);
-    } finally {
-      setIsSubmitting(false);
+      onClose?.();
+    } catch (error) {
+      console.error('Error saving chore:', error);
     }
   };
 
-  const formContent = (
-    <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
-      {error && <div className='text-red-500 text-sm'>{error}</div>}
+  const handleRecurringChange = (checked: boolean) => {
+    setIsRecurring(checked);
+    setValue('recurring', checked);
+  };
 
-      <div className='space-y-2'>
-        <label htmlFor='title' className='block text-sm font-medium'>
-          Title <span className='text-red-500'>*</span>
-        </label>
-        <Input
-          id='title'
-          type='text'
-          {...register('title', { required: 'Title is required' })}
-        />
-        {errors.title && (
-          <p className='text-red-500 text-xs'>{errors.title.message}</p>
-        )}
-      </div>
-
-      <div className='space-y-2'>
-        <label htmlFor='description' className='block text-sm font-medium'>
-          Description
-        </label>
-        <Textarea id='description' rows={3} {...register('description')} />
-      </div>
-
-      <div className='grid grid-cols-2 gap-4'>
-        <div className='space-y-2'>
-          <label htmlFor='priority' className='block text-sm font-medium'>
-            Priority <span className='text-red-500'>*</span>
-          </label>
-          <Select
-            value={priority}
-            onValueChange={(value) =>
-              setPriority(value as 'low' | 'medium' | 'high')
-            }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder='Select priority' />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectItem value='low'>Low</SelectItem>
-                <SelectItem value='medium'>Medium</SelectItem>
-                <SelectItem value='high'>High</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className='space-y-2'>
-          <label htmlFor='status' className='block text-sm font-medium'>
-            Status <span className='text-red-500'>*</span>
-          </label>
-          <Select
-            value={status}
-            onValueChange={(value) =>
-              setStatus(value as 'pending' | 'in_progress' | 'completed')
-            }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder='Select status' />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectItem value='pending'>Pending</SelectItem>
-                <SelectItem value='in_progress'>In Progress</SelectItem>
-                <SelectItem value='completed'>Completed</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <div className='grid grid-cols-2 gap-4'>
-        <div className='space-y-2'>
-          <label htmlFor='due_date' className='block text-sm font-medium'>
-            Due Date
-          </label>
-          <Input id='due_date' type='date' {...register('due_date')} />
-        </div>
-
-        <div className='space-y-2'>
-          <label htmlFor='recurring' className='block text-sm font-medium'>
-            Recurring
-          </label>
-          <Select
-            value={recurring}
-            onValueChange={(value) =>
-              setRecurring(value as 'none' | 'daily' | 'weekly' | 'monthly')
-            }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder='Select recurrence' />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectItem value='none'>None</SelectItem>
-                <SelectItem value='daily'>Daily</SelectItem>
-                <SelectItem value='weekly'>Weekly</SelectItem>
-                <SelectItem value='monthly'>Monthly</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <div className='space-y-2'>
-        <label htmlFor='assigned_to' className='block text-sm font-medium'>
-          Assign To
-        </label>
-        <Select value={assignedTo} onValueChange={setAssignedTo}>
-          <SelectTrigger>
-            <SelectValue placeholder='Select user' />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectItem value='unassigned'>Unassigned</SelectItem>
-              {users.map((user) => (
-                <SelectItem key={user.id} value={user.id}>
-                  {user.name}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className='flex justify-end space-x-3 pt-4'>
-        <Button
-          type='button'
-          onClick={onCancel}
-          variant='outline'
-          disabled={isSubmitting}
-        >
-          Cancel
-        </Button>
-        <Button type='submit' disabled={isSubmitting}>
-          {isSubmitting ? 'Saving...' : 'Save Chore'}
-        </Button>
-      </div>
-    </form>
-  );
-
-  // If the component is embedded in another Card, just return the form
-  if (isEmbedded) {
-    return formContent;
-  }
-
-  // Otherwise, wrap it in a Card
   return (
-    <Card className='max-w-2xl mx-auto shadow-md'>
-      <CardHeader>
-        <CardTitle>{chore ? 'Edit Chore' : 'Add New Chore'}</CardTitle>
-      </CardHeader>
-      <CardContent>{formContent}</CardContent>
-    </Card>
+    <DialogContent className='sm:max-w-[600px]'>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <DialogHeader>
+          <DialogTitle>
+            {isEditMode ? 'Edit Chore' : 'Add New Chore'}
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className='grid gap-4 py-4'>
+          <div className='grid gap-2'>
+            <Label htmlFor='title'>Title</Label>
+            <Input
+              id='title'
+              placeholder='Enter chore title'
+              defaultValue={initialData?.title}
+              onChange={(e) => setValue('title', e.target.value)}
+              className={errors.title ? 'border-red-500' : ''}
+            />
+            {errors.title && (
+              <p className='text-red-500 text-sm'>{errors.title.message}</p>
+            )}
+          </div>
+
+          <div className='grid gap-2'>
+            <Label htmlFor='description'>Description</Label>
+            <Textarea
+              id='description'
+              placeholder='Enter chore description'
+              defaultValue={initialData?.description}
+              onChange={(e) => setValue('description', e.target.value)}
+              rows={3}
+            />
+          </div>
+
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+            <div className='grid gap-2'>
+              <Label htmlFor='assignedTo'>Assigned To</Label>
+              <Select
+                defaultValue={initialData?.assignedTo || undefined}
+                onValueChange={(value) => setValue('assignedTo', value)}
+              >
+                <SelectTrigger id='assignedTo'>
+                  <SelectValue placeholder='Select a person' />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='unassigned'>Not Assigned</SelectItem>
+                  {householdMembers.map((member) => (
+                    <SelectItem key={member.id} value={member.id}>
+                      {member.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className='grid gap-2'>
+              <Label htmlFor='dueDate'>Due Date</Label>
+              <Input
+                id='dueDate'
+                type='date'
+                defaultValue={
+                  initialData?.dueDate
+                    ? format(new Date(initialData.dueDate), 'yyyy-MM-dd')
+                    : ''
+                }
+                onChange={(e) => setValue('dueDate', e.target.value || null)}
+              />
+            </div>
+          </div>
+
+          <div className='grid gap-2'>
+            <div className='flex items-center space-x-2'>
+              <Checkbox
+                id='recurring'
+                checked={isRecurring}
+                onCheckedChange={handleRecurringChange}
+              />
+              <Label htmlFor='recurring'>Recurring Chore</Label>
+            </div>
+          </div>
+
+          {isRecurring && (
+            <div className='grid gap-2'>
+              <Label htmlFor='recurrencePattern'>Recurrence Pattern</Label>
+              <Select
+                defaultValue={initialData?.recurrencePattern || 'daily'}
+                onValueChange={(value) => setValue('recurrencePattern', value)}
+              >
+                <SelectTrigger id='recurrencePattern'>
+                  <SelectValue placeholder='Select a pattern' />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='daily'>Daily</SelectItem>
+                  <SelectItem value='weekly'>Weekly</SelectItem>
+                  <SelectItem value='biweekly'>Bi-weekly</SelectItem>
+                  <SelectItem value='monthly'>Monthly</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+            <div className='grid gap-2'>
+              <Label htmlFor='priority'>Priority</Label>
+              <Select
+                defaultValue={initialData?.priority || 'medium'}
+                onValueChange={(value) =>
+                  setValue('priority', value as 'low' | 'medium' | 'high')
+                }
+              >
+                <SelectTrigger id='priority'>
+                  <SelectValue placeholder='Select priority' />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='low'>Low</SelectItem>
+                  <SelectItem value='medium'>Medium</SelectItem>
+                  <SelectItem value='high'>High</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className='grid gap-2'>
+              <Label htmlFor='category'>Category</Label>
+              <Select
+                defaultValue={initialData?.category || 'General'}
+                onValueChange={(value) => setValue('category', value)}
+              >
+                <SelectTrigger id='category'>
+                  <SelectValue placeholder='Select category' />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.name}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button type='button' variant='outline'>
+              Cancel
+            </Button>
+          </DialogClose>
+          <Button type='submit'>
+            {isEditMode ? 'Save Changes' : 'Add Chore'}
+          </Button>
+        </DialogFooter>
+      </form>
+    </DialogContent>
   );
 }
