@@ -54,7 +54,7 @@ export default function ChoreForm({
     'none' | 'daily' | 'weekly' | 'monthly'
   >(chore?.recurring || 'none');
   const [assignedTo, setAssignedTo] = useState<string>(
-    chore?.assigned_to || ''
+    chore?.assigned_to || 'unassigned'
   );
 
   const {
@@ -104,7 +104,7 @@ export default function ChoreForm({
       setPriority(chore.priority);
       setStatus(chore.status);
       setRecurring(chore.recurring);
-      setAssignedTo(chore.assigned_to || '');
+      setAssignedTo(chore.assigned_to || 'unassigned');
     }
   }, [chore, reset]);
 
@@ -113,7 +113,7 @@ export default function ChoreForm({
     setValue('priority', priority);
     setValue('status', status);
     setValue('recurring', recurring);
-    setValue('assigned_to', assignedTo);
+    setValue('assigned_to', assignedTo === 'unassigned' ? '' : assignedTo);
   }, [priority, status, recurring, assignedTo, setValue]);
 
   const onSubmit: SubmitHandler<ChoreFormValues> = async (data) => {
@@ -283,7 +283,7 @@ export default function ChoreForm({
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              <SelectItem value=''>Unassigned</SelectItem>
+              <SelectItem value='unassigned'>Unassigned</SelectItem>
               {users.map((user) => (
                 <SelectItem key={user.id} value={user.id}>
                   {user.name}
