@@ -2,6 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { Chore, User } from '../../lib/types';
 import { createChore, updateChore } from '../../lib/api/chores';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { Textarea } from '../ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../ui/select';
+import { Card, CardContent } from '../ui/card';
 
 interface ChoreFormProps {
   householdId: string;
@@ -31,10 +43,25 @@ export default function ChoreForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Custom state for select fields since they're managed differently with shadcn
+  const [priority, setPriority] = useState<'low' | 'medium' | 'high'>(
+    chore?.priority || 'medium'
+  );
+  const [status, setStatus] = useState<'pending' | 'in_progress' | 'completed'>(
+    chore?.status || 'pending'
+  );
+  const [recurring, setRecurring] = useState<
+    'none' | 'daily' | 'weekly' | 'monthly'
+  >(chore?.recurring || 'none');
+  const [assignedTo, setAssignedTo] = useState<string>(
+    chore?.assigned_to || ''
+  );
+
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
   } = useForm<ChoreFormValues>({
     defaultValues: chore
@@ -73,8 +100,21 @@ export default function ChoreForm({
         priority: chore.priority,
         recurring: chore.recurring,
       });
+
+      setPriority(chore.priority);
+      setStatus(chore.status);
+      setRecurring(chore.recurring);
+      setAssignedTo(chore.assigned_to || '');
     }
   }, [chore, reset]);
+
+  // Update form values when selects change
+  useEffect(() => {
+    setValue('priority', priority);
+    setValue('status', status);
+    setValue('recurring', recurring);
+    setValue('assigned_to', assignedTo);
+  }, [priority, status, recurring, assignedTo, setValue]);
 
   const onSubmit: SubmitHandler<ChoreFormValues> = async (data) => {
     try {
@@ -103,27 +143,23 @@ export default function ChoreForm({
   };
 
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className='space-y-4 p-4 bg-white rounded-lg shadow'
-    >
+    <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
       <h2 className='text-xl font-semibold'>
         {chore ? 'Edit Chore' : 'Add New Chore'}
       </h2>
 
       {error && <div className='text-red-500 text-sm'>{error}</div>}
 
-      <div>
+      <div className='space-y-2'>
         <label
           htmlFor='title'
-          className='block text-sm font-medium text-gray-700 mb-1'
+          className='block text-sm font-medium text-gray-700'
         >
           Title <span className='text-red-500'>*</span>
         </label>
-        <input
+        <Input
           id='title'
           type='text'
-          className='w-full px-3 py-2 border rounded-md'
           {...register('title', { required: 'Title is required' })}
         />
         {errors.title && (
@@ -131,132 +167,145 @@ export default function ChoreForm({
         )}
       </div>
 
-      <div>
+      <div className='space-y-2'>
         <label
           htmlFor='description'
-          className='block text-sm font-medium text-gray-700 mb-1'
+          className='block text-sm font-medium text-gray-700'
         >
           Description
         </label>
-        <textarea
-          id='description'
-          rows={3}
-          className='w-full px-3 py-2 border rounded-md'
-          {...register('description')}
-        />
+        <Textarea id='description' rows={3} {...register('description')} />
       </div>
 
       <div className='grid grid-cols-2 gap-4'>
-        <div>
+        <div className='space-y-2'>
           <label
             htmlFor='priority'
-            className='block text-sm font-medium text-gray-700 mb-1'
+            className='block text-sm font-medium text-gray-700'
           >
             Priority <span className='text-red-500'>*</span>
           </label>
-          <select
-            id='priority'
-            className='w-full px-3 py-2 border rounded-md'
-            {...register('priority', { required: 'Priority is required' })}
+          <Select
+            value={priority}
+            onValueChange={(value) =>
+              setPriority(value as 'low' | 'medium' | 'high')
+            }
           >
-            <option value='low'>Low</option>
-            <option value='medium'>Medium</option>
-            <option value='high'>High</option>
-          </select>
+            <SelectTrigger>
+              <SelectValue placeholder='Select priority' />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem value='low'>Low</SelectItem>
+                <SelectItem value='medium'>Medium</SelectItem>
+                <SelectItem value='high'>High</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
         </div>
 
-        <div>
+        <div className='space-y-2'>
           <label
             htmlFor='status'
-            className='block text-sm font-medium text-gray-700 mb-1'
+            className='block text-sm font-medium text-gray-700'
           >
             Status <span className='text-red-500'>*</span>
           </label>
-          <select
-            id='status'
-            className='w-full px-3 py-2 border rounded-md'
-            {...register('status', { required: 'Status is required' })}
+          <Select
+            value={status}
+            onValueChange={(value) =>
+              setStatus(value as 'pending' | 'in_progress' | 'completed')
+            }
           >
-            <option value='pending'>Pending</option>
-            <option value='in_progress'>In Progress</option>
-            <option value='completed'>Completed</option>
-          </select>
+            <SelectTrigger>
+              <SelectValue placeholder='Select status' />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem value='pending'>Pending</SelectItem>
+                <SelectItem value='in_progress'>In Progress</SelectItem>
+                <SelectItem value='completed'>Completed</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
       <div className='grid grid-cols-2 gap-4'>
-        <div>
+        <div className='space-y-2'>
           <label
             htmlFor='due_date'
-            className='block text-sm font-medium text-gray-700 mb-1'
+            className='block text-sm font-medium text-gray-700'
           >
             Due Date
           </label>
-          <input
-            id='due_date'
-            type='date'
-            className='w-full px-3 py-2 border rounded-md'
-            {...register('due_date')}
-          />
+          <Input id='due_date' type='date' {...register('due_date')} />
         </div>
 
-        <div>
+        <div className='space-y-2'>
           <label
             htmlFor='recurring'
-            className='block text-sm font-medium text-gray-700 mb-1'
+            className='block text-sm font-medium text-gray-700'
           >
             Recurring
           </label>
-          <select
-            id='recurring'
-            className='w-full px-3 py-2 border rounded-md'
-            {...register('recurring')}
+          <Select
+            value={recurring}
+            onValueChange={(value) =>
+              setRecurring(value as 'none' | 'daily' | 'weekly' | 'monthly')
+            }
           >
-            <option value='none'>None</option>
-            <option value='daily'>Daily</option>
-            <option value='weekly'>Weekly</option>
-            <option value='monthly'>Monthly</option>
-          </select>
+            <SelectTrigger>
+              <SelectValue placeholder='Select recurrence' />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem value='none'>None</SelectItem>
+                <SelectItem value='daily'>Daily</SelectItem>
+                <SelectItem value='weekly'>Weekly</SelectItem>
+                <SelectItem value='monthly'>Monthly</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
-      <div>
+      <div className='space-y-2'>
         <label
           htmlFor='assigned_to'
-          className='block text-sm font-medium text-gray-700 mb-1'
+          className='block text-sm font-medium text-gray-700'
         >
           Assign To
         </label>
-        <select
-          id='assigned_to'
-          className='w-full px-3 py-2 border rounded-md'
-          {...register('assigned_to')}
-        >
-          <option value=''>Unassigned</option>
-          {users.map((user) => (
-            <option key={user.id} value={user.id}>
-              {user.name}
-            </option>
-          ))}
-        </select>
+        <Select value={assignedTo} onValueChange={setAssignedTo}>
+          <SelectTrigger>
+            <SelectValue placeholder='Select user' />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectItem value=''>Unassigned</SelectItem>
+              {users.map((user) => (
+                <SelectItem key={user.id} value={user.id}>
+                  {user.name}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
       </div>
 
       <div className='flex justify-end space-x-3 pt-4'>
-        <button
+        <Button
           type='button'
           onClick={onCancel}
-          className='px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50'
+          variant='outline'
           disabled={isSubmitting}
         >
           Cancel
-        </button>
-        <button
-          type='submit'
-          className='px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? 'Saving...' : chore ? 'Update Chore' : 'Create Chore'}
-        </button>
+        </Button>
+        <Button type='submit' disabled={isSubmitting}>
+          {isSubmitting ? 'Saving...' : 'Save Chore'}
+        </Button>
       </div>
     </form>
   );

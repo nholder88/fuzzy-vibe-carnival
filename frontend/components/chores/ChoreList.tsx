@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Chore } from '../../lib/types';
 import { getChores } from '../../lib/api/chores';
 import ChoreItem from './ChoreItem';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import { Button } from '../ui/button';
 
 type ChoreListProps = {
   householdId: string;
@@ -42,12 +44,6 @@ export default function ChoreList({
       ? chores
       : chores.filter((chore) => chore.status === filter);
 
-  const handleFilterChange = (
-    newFilter: 'all' | 'pending' | 'in_progress' | 'completed'
-  ) => {
-    setFilter(newFilter);
-  };
-
   if (loading) {
     return <div className='w-full text-center py-8'>Loading chores...</div>;
   }
@@ -68,42 +64,20 @@ export default function ChoreList({
     <div className='w-full'>
       <div className='flex justify-between items-center mb-6'>
         <h2 className='text-2xl font-semibold'>Household Chores</h2>
-        <div className='flex space-x-2'>
-          <button
-            className={`px-3 py-1 rounded ${
-              filter === 'all' ? 'bg-blue-500 text-white' : 'bg-gray-200'
-            }`}
-            onClick={() => handleFilterChange('all')}
-          >
-            All
-          </button>
-          <button
-            className={`px-3 py-1 rounded ${
-              filter === 'pending' ? 'bg-blue-500 text-white' : 'bg-gray-200'
-            }`}
-            onClick={() => handleFilterChange('pending')}
-          >
-            Pending
-          </button>
-          <button
-            className={`px-3 py-1 rounded ${
-              filter === 'in_progress'
-                ? 'bg-blue-500 text-white'
-                : 'bg-gray-200'
-            }`}
-            onClick={() => handleFilterChange('in_progress')}
-          >
-            In Progress
-          </button>
-          <button
-            className={`px-3 py-1 rounded ${
-              filter === 'completed' ? 'bg-blue-500 text-white' : 'bg-gray-200'
-            }`}
-            onClick={() => handleFilterChange('completed')}
-          >
-            Completed
-          </button>
-        </div>
+        <Tabs
+          defaultValue={filter}
+          onValueChange={(value) =>
+            setFilter(value as 'all' | 'pending' | 'in_progress' | 'completed')
+          }
+          className='w-auto'
+        >
+          <TabsList>
+            <TabsTrigger value='all'>All</TabsTrigger>
+            <TabsTrigger value='pending'>Pending</TabsTrigger>
+            <TabsTrigger value='in_progress'>In Progress</TabsTrigger>
+            <TabsTrigger value='completed'>Completed</TabsTrigger>
+          </TabsList>
+        </Tabs>
       </div>
 
       <div className='space-y-4'>

@@ -4,6 +4,8 @@ import ChoreList from './ChoreList';
 import ChoreForm from './ChoreForm';
 import ChoreDetail from './ChoreDetail';
 import { getChores, deleteChore } from '../../lib/api/chores';
+import { Button } from '../ui/button';
+import { Card, CardContent } from '../ui/card';
 
 // Mock function for user retrieval - in a real app, this would come from an API
 const getUsers = async (householdId: string): Promise<User[]> => {
@@ -115,12 +117,9 @@ export default function ChoreManager({ householdId }: ChoreManagerProps) {
         <div>
           <div className='flex justify-between items-center mb-6'>
             <h1 className='text-3xl font-bold'>Chore Management</h1>
-            <button
-              onClick={handleCreateChore}
-              className='px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700'
-            >
+            <Button onClick={handleCreateChore} variant='default'>
               Add New Chore
-            </button>
+            </Button>
           </div>
           <ChoreList
             householdId={householdId}
@@ -140,23 +139,26 @@ export default function ChoreManager({ householdId }: ChoreManagerProps) {
       )}
 
       {(view === 'create' || view === 'edit') && (
-        <div>
-          <div className='mb-4'>
-            <button
-              onClick={() => setView(selectedChore ? 'detail' : 'list')}
-              className='flex items-center text-blue-600 hover:text-blue-800'
-            >
-              <span>← Back</span>
-            </button>
-          </div>
-          <ChoreForm
-            householdId={householdId}
-            chore={view === 'edit' ? selectedChore || undefined : undefined}
-            users={users}
-            onSuccess={handleFormSuccess}
-            onCancel={() => setView(selectedChore ? 'detail' : 'list')}
-          />
-        </div>
+        <Card>
+          <CardContent className='p-6'>
+            <div className='mb-4'>
+              <Button
+                onClick={() => setView(selectedChore ? 'detail' : 'list')}
+                variant='ghost'
+                className='p-0 flex items-center text-blue-600 hover:text-blue-800'
+              >
+                <span>← Back</span>
+              </Button>
+            </div>
+            <ChoreForm
+              householdId={householdId}
+              chore={view === 'edit' ? selectedChore || undefined : undefined}
+              users={users}
+              onSuccess={handleFormSuccess}
+              onCancel={() => setView(selectedChore ? 'detail' : 'list')}
+            />
+          </CardContent>
+        </Card>
       )}
     </div>
   );
