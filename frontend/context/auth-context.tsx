@@ -1,5 +1,7 @@
+'use client';
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import axios from 'axios';
 
 type User = {
@@ -43,8 +45,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  // Check for token in localStorage on mount
+  // Check for token in localStorage on mount with SSR safety
   useEffect(() => {
+    // Only run on client-side
+    if (typeof window === 'undefined') return;
+
     const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
 
@@ -73,9 +78,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const response = await axios.post('/api/auth/login', { email, password });
       const { access_token, user } = response.data;
 
-      // Store token and user data
-      localStorage.setItem('token', access_token);
-      localStorage.setItem('user', JSON.stringify(user));
+      // Store token and user data (safely for SSR)
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('token', access_token);
+        localStorage.setItem('user', JSON.stringify(user));
+      }
 
       // Set Authorization header
       axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
@@ -83,7 +90,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       // Update state
       setUser(user);
 
-      // Redirect to dashboard
+      // Redirect to dashboard with App Router navigation
       router.push('/dashboard');
     } catch (error) {
       console.error('Login error:', error);
@@ -118,9 +125,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const logout = () => {
-    // Remove token and user data from localStorage
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    // Remove token and user data from localStorage (safely for SSR)
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+    }
 
     // Remove Authorization header
     delete axios.defaults.headers.common['Authorization'];
@@ -128,7 +137,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     // Update state
     setUser(null);
 
-    // Redirect to login page
+    // Redirect to login page with App Router navigation
     router.push('/login');
   };
 
