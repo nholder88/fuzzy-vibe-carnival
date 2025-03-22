@@ -3,6 +3,8 @@ const cors = require('cors');
 const helmet = require('helmet');
 const { rateLimit } = require('express-rate-limit');
 const dotenv = require('dotenv');
+const { initCronJobs } = require('./cron');
+const { initializeDatabase } = require('./config/init-db');
 
 // Load environment variables
 dotenv.config();
@@ -46,8 +48,29 @@ app.use((err, req, res, next) => {
 
 // Start server
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-    console.log(`Chore service listening on port ${PORT}`);
-});
+
+// Initialize database and then start the server
+const startServer = async () => {
+    try {
+        // Initialize the database
+        await initializeDatabase();
+
+        // Initialize cron jobs for recurring chores
+        if (process.env.DISABLE_CRON !== 'true') {
+            initCronJobs();
+        }
+
+        // Start the server
+        app.listen(PORT, () => {
+            console.log(`Chore service listening on port ${PORT}`);
+        });
+    } catch (error) {
+        console.error('Failed to start server:', error);
+        process.exit(1);
+    }
+};
+
+// Start the server
+startServer();
 
 module.exports = app; 
