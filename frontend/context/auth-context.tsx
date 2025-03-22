@@ -15,6 +15,7 @@ type User = {
 type AuthContextType = {
   user: User | null;
   loading: boolean;
+  authLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (userData: RegisterData) => Promise<void>;
   logout: () => void;
@@ -44,6 +45,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   // Initialize with consistent state values for both server and client
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
   const router = useRouter();
@@ -80,7 +82,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const login = async (email: string, password: string) => {
     try {
-      setLoading(true);
+      setAuthLoading(true);
       setError(null);
 
       const response = await axios.post('/api/auth/login', { email, password });
@@ -114,13 +116,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         setError('An unexpected error occurred. Please try again.');
       }
     } finally {
-      setLoading(false);
+      setAuthLoading(false);
     }
   };
 
   const register = async (userData: RegisterData) => {
     try {
-      setLoading(true);
+      setAuthLoading(true);
       setError(null);
 
       await axios.post('/api/auth/register', userData);
@@ -134,7 +136,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       } else {
         setError('An unexpected error occurred. Please try again.');
       }
-      setLoading(false);
+      setAuthLoading(false);
     }
   };
 
@@ -161,6 +163,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const value = {
     user,
     loading,
+    authLoading,
     error,
     login,
     register,

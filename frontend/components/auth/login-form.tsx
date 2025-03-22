@@ -31,7 +31,7 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
-  const { login, error, loading } = useAuth();
+  const { login, error, authLoading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
 
   const {
@@ -104,8 +104,8 @@ export function LoginForm() {
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-          <Button type='submit' className='w-full' disabled={loading}>
-            {loading ? 'Logging in...' : 'Login'}
+          <Button type='submit' className='w-full' disabled={authLoading}>
+            {authLoading ? 'Logging in...' : 'Login'}
           </Button>
         </form>
       </CardContent>

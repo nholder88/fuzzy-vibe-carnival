@@ -46,7 +46,7 @@ const registerSchema = z
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export function RegisterForm() {
-  const { register: registerUser, error, loading } = useAuth();
+  const { register: registerUser, error, authLoading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
 
   const {
@@ -168,8 +168,8 @@ export function RegisterForm() {
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-          <Button type='submit' className='w-full' disabled={loading}>
-            {loading ? 'Creating account...' : 'Register'}
+          <Button type='submit' className='w-full' disabled={authLoading}>
+            {authLoading ? 'Creating Account...' : 'Register'}
           </Button>
         </form>
       </CardContent>

@@ -21,6 +21,7 @@ describe('LoginForm', () => {
       login: mockLogin,
       error: null,
       loading: false,
+      authLoading: false,
     });
   });
 
@@ -28,10 +29,12 @@ describe('LoginForm', () => {
     render(<LoginForm />);
 
     // Check for form elements
-    expect(screen.getByText('Login')).toBeInTheDocument();
+    expect(
+      screen.getByText('Login', { selector: '.text-2xl' })
+    ).toBeInTheDocument();
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /login/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /login$/i })).toBeInTheDocument();
     expect(screen.getByText(/don't have an account/i)).toBeInTheDocument();
     expect(screen.getByText(/register/i)).toBeInTheDocument();
   });
@@ -80,6 +83,7 @@ describe('LoginForm', () => {
       login: mockLogin,
       error: 'Invalid credentials',
       loading: false,
+      authLoading: false,
     });
 
     render(<LoginForm />);
@@ -93,7 +97,8 @@ describe('LoginForm', () => {
     (useAuth as jest.Mock).mockReturnValue({
       login: mockLogin,
       error: null,
-      loading: true,
+      loading: false,
+      authLoading: true,
     });
 
     render(<LoginForm />);
@@ -102,5 +107,23 @@ describe('LoginForm', () => {
     const button = screen.getByRole('button', { name: /logging in/i });
     expect(button).toBeDisabled();
     expect(button).toHaveTextContent('Logging in...');
+  });
+
+  it('should not show loading state on initial render', () => {
+    // This test should now pass as we've fixed the bug
+    // Mock the auth context with initial loading true but authLoading false
+    (useAuth as jest.Mock).mockReturnValue({
+      login: mockLogin,
+      error: null,
+      loading: true,
+      authLoading: false,
+    });
+
+    render(<LoginForm />);
+
+    // Check if button is enabled and shows "Login"
+    const button = screen.getByRole('button', { name: /login$/i });
+    expect(button).not.toBeDisabled();
+    expect(button).toHaveTextContent('Login');
   });
 });

@@ -21,6 +21,7 @@ describe('RegisterForm', () => {
       register: mockRegister,
       error: null,
       loading: false,
+      authLoading: false,
     });
   });
 
@@ -147,6 +148,7 @@ describe('RegisterForm', () => {
       register: mockRegister,
       error: 'Email already in use',
       loading: false,
+      authLoading: false,
     });
 
     render(<RegisterForm />);
@@ -160,7 +162,8 @@ describe('RegisterForm', () => {
     (useAuth as jest.Mock).mockReturnValue({
       register: mockRegister,
       error: null,
-      loading: true,
+      loading: false,
+      authLoading: true,
     });
 
     render(<RegisterForm />);
@@ -168,6 +171,6 @@ describe('RegisterForm', () => {
     // Check if button is disabled and shows loading text
     const button = screen.getByRole('button', { name: /creating account/i });
     expect(button).toBeDisabled();
-    expect(button).toHaveTextContent('Creating account...');
+    expect(button).toHaveTextContent(/creating account/i);
   });
 });
