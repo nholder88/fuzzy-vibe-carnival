@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { AlertCircle } from 'lucide-react';
+import { useHousehold } from '@/hooks/useHousehold';
 
 // Form validation schema
 const householdSchema = z.object({
@@ -24,15 +25,9 @@ const householdSchema = z.object({
 
 type HouseholdFormValues = z.infer<typeof householdSchema>;
 
-interface CreateHouseholdFormProps {
-  onSubmit: (data: HouseholdFormValues) => Promise<void>;
-  isLoading?: boolean;
-}
+export function CreateHouseholdForm() {
+  const { isLoading, createHousehold } = useHousehold();
 
-export function CreateHouseholdForm({
-  onSubmit,
-  isLoading = false,
-}: CreateHouseholdFormProps) {
   const {
     register,
     handleSubmit,
@@ -45,7 +40,7 @@ export function CreateHouseholdForm({
   });
 
   const handleFormSubmit = async (data: HouseholdFormValues) => {
-    await onSubmit(data);
+    await createHousehold(data.name);
   };
 
   return (

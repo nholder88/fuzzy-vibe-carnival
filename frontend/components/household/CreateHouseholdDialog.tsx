@@ -16,6 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { useHousehold } from '@/hooks/useHousehold';
 
 // Form validation schema
 const householdSchema = z.object({
@@ -27,16 +28,14 @@ type HouseholdFormValues = z.infer<typeof householdSchema>;
 interface CreateHouseholdDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: HouseholdFormValues) => Promise<void>;
-  isLoading?: boolean;
 }
 
 export function CreateHouseholdDialog({
   open,
   onOpenChange,
-  onSubmit,
-  isLoading = false,
 }: CreateHouseholdDialogProps) {
+  const { isLoading, createHousehold } = useHousehold();
+
   const {
     register,
     handleSubmit,
@@ -50,9 +49,10 @@ export function CreateHouseholdDialog({
   });
 
   const handleFormSubmit = async (data: HouseholdFormValues) => {
-    await onSubmit(data);
+    await createHousehold(data.name);
     if (!isLoading) {
       reset();
+      onOpenChange(false);
     }
   };
 
