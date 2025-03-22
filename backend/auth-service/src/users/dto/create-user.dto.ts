@@ -4,6 +4,7 @@ import {
   IsString,
   MinLength,
   IsOptional,
+  IsBoolean,
 } from 'class-validator';
 
 export class CreateUserDto {
@@ -23,4 +24,8 @@ export class CreateUserDto {
   @IsString()
   @IsOptional()
   lastName: string;
+
+  @IsBoolean()
+  @IsOptional()
+  isVerified?: boolean;
 }

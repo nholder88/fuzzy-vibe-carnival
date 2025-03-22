@@ -27,7 +27,10 @@ export class UsersService {
     }
 
     // Create and save new user
-    const user = this.usersRepository.create(createUserDto);
+    const user = this.usersRepository.create({
+      ...createUserDto,
+      isVerified: createUserDto.isVerified || false,
+    });
     await this.usersRepository.save(user);
 
     // Remove password from response using destructuring
