@@ -5,6 +5,7 @@ const { rateLimit } = require('express-rate-limit');
 const dotenv = require('dotenv');
 const { initCronJobs } = require('./cron');
 const { initializeDatabase } = require('./config/init-db');
+const { connectProducer, disconnectProducer } = require('./services/kafkaService');
 
 // Load environment variables
 dotenv.config();
@@ -61,14 +62,36 @@ const startServer = async () => {
         }
 
         // Start the server
-        app.listen(PORT, () => {
-            console.log(`Chore service listening on port ${PORT}`);
+        app.listen(PORT, async () => {
+            console.log(`Chore service running on port ${PORT}`);
+
+            // Connect to Kafka
+            await connectProducer();
         });
     } catch (error) {
         console.error('Failed to start server:', error);
         process.exit(1);
     }
 };
+
+// Handle shutdown
+process.on('SIGINT', async () => {
+    console.log('Shutting down server...');
+
+    // Disconnect from Kafka
+    await disconnectProducer();
+
+    process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+    console.log('Shutting down server...');
+
+    // Disconnect from Kafka
+    await disconnectProducer();
+
+    process.exit(0);
+});
 
 // Start the server
 startServer();

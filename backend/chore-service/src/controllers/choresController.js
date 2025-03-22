@@ -1,5 +1,7 @@
 const { v4: uuidv4 } = require('uuid');
 const Chore = require('../models/Chore');
+const { publishEvent } = require('../services/kafkaService');
+const { validateStatusTransition, prepareStatusUpdateData } = require('../services/choreStatusService');
 
 // GET all chores
 const getAllChores = async (req, res) => {
@@ -89,34 +91,40 @@ const updateChore = async (req, res) => {
 // PATCH (update) a chore's status
 const updateChoreStatus = async (req, res) => {
     try {
-        const { status, completed_at } = req.body;
+        const { status } = req.body;
+        const choreId = req.params.id;
 
-        // Create update object
-        const updateData = { status };
+        // First get the current chore to validate transition
+        const currentChore = await Chore.findById(choreId);
 
-        // Set completed_at if provided
-        if (completed_at !== undefined) {
-            updateData.completed_at = completed_at;
-        }
-        // If not explicitly provided but status is completed, set to current time
-        else if (status === 'completed') {
-            updateData.completed_at = new Date().toISOString();
-        }
-        // If status changed from completed to something else, clear completed_at
-        else {
-            // We'll let the Chore model handle this logic
+        if (!currentChore) {
+            return res.status(404).json({ message: 'Chore not found' });
         }
 
-        const updatedChore = await Chore.update(req.params.id, updateData);
+        // Validate the status transition
+        const validationResult = validateStatusTransition(currentChore.status, status);
+        if (!validationResult.valid) {
+            return res.status(400).json({ message: validationResult.message });
+        }
 
-        // In a real implementation, we would publish an event to Kafka here
-        // Example: await publishEvent('chore.statusUpdated', updatedChore);
+        // Prepare the update data with proper completed_at handling
+        const updateData = prepareStatusUpdateData(currentChore, status);
+
+        // Update the chore in the database
+        const updatedChore = await Chore.update(choreId, updateData);
+
+        // Publish event to Kafka for WebSocket subscribers
+        await publishEvent('chores.status.updated', {
+            id: updatedChore.id,
+            type: 'status_updated',
+            chore: updatedChore,
+            previousStatus: currentChore.status,
+            newStatus: updatedChore.status,
+            timestamp: new Date().toISOString()
+        });
 
         res.status(200).json(updatedChore);
     } catch (error) {
-        if (error.message === 'Chore not found') {
-            return res.status(404).json({ message: 'Chore not found' });
-        }
         console.error(`Error updating chore status ${req.params.id}:`, error);
         res.status(500).json({ message: 'Internal server error' });
     }
