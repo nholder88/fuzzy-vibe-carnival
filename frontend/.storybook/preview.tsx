@@ -1,6 +1,8 @@
 import type { Preview } from '@storybook/react';
 import React, { ReactNode } from 'react';
-import '../app/styles/globals.css';
+// Import using relative path to ensure it's found
+import '../styles/globals.css';
+import { ThemeDecorator } from './decorators/ThemeDecorator';
 
 // Mock router implementation
 const mockRouter = {
@@ -79,7 +81,7 @@ const preview: Preview = {
       appDirectory: true,
     },
   },
-  decorators: [withMockProviders],
+  decorators: [withMockProviders, ThemeDecorator],
 };
 
 export default preview;

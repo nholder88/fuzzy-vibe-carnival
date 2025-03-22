@@ -79,6 +79,25 @@ export const choreService = {
     }
   },
 
+  async updateChoreStatus(
+    id: string,
+    status: 'pending' | 'in_progress' | 'completed'
+  ): Promise<Chore> {
+    try {
+      // Determine if completed based on status
+      const completed = status === 'completed';
+
+      const response = await axios.patch(`${API_URL}/chores/${id}/status`, {
+        status,
+        completed_at: completed ? new Date().toISOString() : null,
+      });
+      return response.data;
+    } catch (error) {
+      console.error(`Error updating chore status ${id}:`, error);
+      throw error;
+    }
+  },
+
   async getHouseholdMembers(householdId: string) {
     try {
       const response = await axios.get(
