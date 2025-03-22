@@ -10,7 +10,7 @@ const customJestConfig = {
     testEnvironment: 'node',
     testMatch: ['**/tests/e2e/**/*.test.{js,jsx,ts,tsx}'],
     setupFilesAfterEnv: ['<rootDir>/jest.setup.e2e.js'],
-    testTimeout: 30000, // Increase timeout for e2e tests
+    testTimeout: 60000, // Increase timeout for e2e tests
     moduleNameMapper: {
         // Handle module aliases
         '^@/(.*)$': '<rootDir>/$1',

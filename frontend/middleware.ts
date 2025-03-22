@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
 // List of paths that are public and don't require authentication
 const publicPaths = [
@@ -6,13 +7,16 @@ const publicPaths = [
   '/register',
   '/api/auth/login',
   '/api/auth/register',
+  '/_next',
+  '/favicon.ico',
+  '/assets',
 ];
 
 // Middleware function to check if user is authenticated
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Return early if the path is public
+  // Always allow access to public paths
   if (publicPaths.some((path) => pathname.startsWith(path))) {
     return NextResponse.next();
   }
@@ -20,11 +24,14 @@ export function middleware(request: NextRequest) {
   // Get the token from the request cookie
   const token = request.cookies.get('token')?.value;
 
-  // If there is no token, redirect to the login page
+  // If trying to access a protected route without a token, redirect to login
   if (!token) {
-    const url = new URL('/login', request.url);
-    url.searchParams.set('callbackUrl', encodeURI(request.url));
-    return NextResponse.redirect(url);
+    // Only redirect if not already on the login page to avoid loops
+    if (!pathname.startsWith('/login')) {
+      const url = new URL('/login', request.url);
+      url.searchParams.set('callbackUrl', encodeURI(request.url));
+      return NextResponse.redirect(url);
+    }
   }
 
   // If there is a token, continue to the requested page
@@ -35,10 +42,7 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Match all request paths except:
-     * - Public paths
-     * - API routes that don't require auth
-     * - Static files
+     * Match all request paths except static files
      */
     '/((?!_next/static|_next/image|favicon.ico).*)',
   ],

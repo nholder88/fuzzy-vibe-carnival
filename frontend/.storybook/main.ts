@@ -33,14 +33,7 @@ const config: StorybookConfig = {
   },
   staticDirs: ['../public'],
   typescript: {
-    reactDocgen: 'react-docgen-typescript',
-    reactDocgenTypescriptOptions: {
-      compilerOptions: {
-        allowSyntheticDefaultImports: false,
-        esModuleInterop: false,
-      },
-      propFilter: () => true,
-    },
+    reactDocgen: false,
   },
   webpackFinal: async (config) => {
     if (config.resolve) {

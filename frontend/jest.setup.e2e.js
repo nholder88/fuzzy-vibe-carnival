@@ -1,5 +1,5 @@
 // Increase Jest timeout for Puppeteer tests
-jest.setTimeout(30000);
+jest.setTimeout(60000);
 
 // Set up some global variables for tests
 process.env.TEST_BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:3000';

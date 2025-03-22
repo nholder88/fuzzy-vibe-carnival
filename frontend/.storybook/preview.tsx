@@ -1,5 +1,6 @@
 import type { Preview } from '@storybook/react';
 import React, { ReactNode } from 'react';
+// Import using relative path to ensure it's found
 import '../styles/globals.css';
 import { ThemeDecorator } from './decorators/ThemeDecorator';
 

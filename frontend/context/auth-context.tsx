@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
+import Cookies from 'js-cookie';
 
 type User = {
   id: string;
@@ -78,10 +79,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const response = await axios.post('/api/auth/login', { email, password });
       const { access_token, user } = response.data;
 
-      // Store token and user data (safely for SSR)
+      // Store token in both cookies and localStorage for consistency across auth mechanisms
       if (typeof window !== 'undefined') {
+        // Set in localStorage for client-side use
         localStorage.setItem('token', access_token);
         localStorage.setItem('user', JSON.stringify(user));
+
+        // Set in cookies for middleware
+        document.cookie = `token=${access_token}; path=/; max-age=604800; SameSite=Lax`;
       }
 
       // Set Authorization header
@@ -125,10 +130,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const logout = () => {
-    // Remove token and user data from localStorage (safely for SSR)
+    // Remove token and user data from localStorage and cookies
     if (typeof window !== 'undefined') {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
+
+      // Clear the cookie
+      document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
     }
 
     // Remove Authorization header

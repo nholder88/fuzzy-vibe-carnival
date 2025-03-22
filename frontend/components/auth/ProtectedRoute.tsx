@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/context/auth-context';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -11,15 +11,27 @@ interface ProtectedRouteProps {
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login');
+    // Check if we have either a user in context or a token in localStorage
+    // This prevents redirect loops with the middleware
+    const hasToken =
+      typeof window !== 'undefined' &&
+      (!!localStorage.getItem('token') || document.cookie.includes('token='));
+
+    if (!loading) {
+      if (user || hasToken) {
+        setIsAuthenticated(true);
+      } else {
+        // Only redirect if we're absolutely sure there's no authentication
+        router.push('/login');
+      }
     }
   }, [user, loading, router]);
 
   // Show loading state while checking authentication
-  if (loading) {
+  if (loading || (!isAuthenticated && !user)) {
     return (
       <div className='flex items-center justify-center min-h-screen'>
         <div className='animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary'></div>
@@ -27,6 +39,6 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     );
   }
 
-  // Only render children if user is authenticated
-  return user ? <>{children}</> : null;
+  // Render children if authenticated or has token
+  return <>{children}</>;
 }
