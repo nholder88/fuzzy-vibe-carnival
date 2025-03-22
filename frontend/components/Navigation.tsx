@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 
 import {
   NavigationMenu,
@@ -102,6 +103,9 @@ export default function Navigation() {
         </NavigationMenu>
 
         <div className='ml-auto flex items-center space-x-4'>
+          {/* Theme Toggle */}
+          <ThemeToggle />
+
           {/* User Profile */}
           <div data-testid='user-profile-container'>
             {!loading && (
