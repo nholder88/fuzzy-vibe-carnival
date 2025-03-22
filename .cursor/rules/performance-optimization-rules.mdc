@@ -1,5 +1,5 @@
 ---
-description: 
+description: performance optimization in Next.js applications, including minimizing client-side logic, using Suspense, and optimizing images
 globs: 
 alwaysApply: false
 ---
