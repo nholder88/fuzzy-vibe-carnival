@@ -12,8 +12,10 @@ RUN npm run build
 
 EXPOSE 3003
 
-# Create a startup script that seeds the database then starts the service
-RUN echo '#!/bin/sh\nnpm run seed && npm run start:prod' > /app/startup.sh && \
-    chmod +x /app/startup.sh
+# Create an entry point script
+RUN echo "#!/bin/sh" > /app/start.sh && \
+    echo "npm run seed" >> /app/start.sh && \
+    echo "npm run start:prod" >> /app/start.sh && \
+    chmod +x /app/start.sh
 
-CMD ["/app/startup.sh"] 
+CMD ["/bin/sh", "/app/start.sh"] 
