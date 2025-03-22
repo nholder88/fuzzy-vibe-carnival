@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import EmptyState from './ui/empty-state';
+import EmptyState from '@/components/ui/empty-state';
 
 interface Activity {
   id: string;
@@ -14,8 +14,16 @@ interface Activity {
 export default function ActivityFeed() {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    // Skip this effect during SSR
+    if (!isClient) return;
+
     // Simulate fetching data
     const fetchActivities = async () => {
       try {
@@ -57,7 +65,7 @@ export default function ActivityFeed() {
     };
 
     fetchActivities();
-  }, []);
+  }, [isClient]);
 
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);
@@ -91,7 +99,9 @@ export default function ActivityFeed() {
               </p>
               <p className='text-sm text-gray-500'>{activity.description}</p>
               <p className='text-xs text-gray-400 mt-1'>
-                {new Date(activity.timestamp).toLocaleString()}
+                {isClient
+                  ? new Date(activity.timestamp).toLocaleString()
+                  : activity.timestamp}
               </p>
             </div>
           </li>

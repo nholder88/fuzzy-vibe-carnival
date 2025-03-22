@@ -41,15 +41,22 @@ export const useAuth = () => {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
+  // Initialize with consistent state values for both server and client
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isClient, setIsClient] = useState(false);
   const router = useRouter();
 
-  // Check for token in localStorage on mount with SSR safety
+  // Set isClient to true once component mounts on client
   useEffect(() => {
-    // Only run on client-side
-    if (typeof window === 'undefined') return;
+    setIsClient(true);
+  }, []);
+
+  // Check for token in localStorage only after hydration is complete
+  useEffect(() => {
+    // Skip this effect during SSR or before hydration
+    if (!isClient) return;
 
     const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
@@ -69,7 +76,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
 
     setLoading(false);
-  }, []);
+  }, [isClient]);
 
   const login = async (email: string, password: string) => {
     try {
@@ -79,18 +86,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const response = await axios.post('/api/auth/login', { email, password });
       const { access_token, user } = response.data;
 
-      // Store token in both cookies and localStorage for consistency across auth mechanisms
-      if (typeof window !== 'undefined') {
+      // Only interact with browser APIs after confirming we're on the client
+      if (isClient) {
         // Set in localStorage for client-side use
         localStorage.setItem('token', access_token);
         localStorage.setItem('user', JSON.stringify(user));
 
         // Set in cookies for middleware
         document.cookie = `token=${access_token}; path=/; max-age=604800; SameSite=Lax`;
-      }
 
-      // Set Authorization header
-      axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
+        // Set Authorization header
+        axios.defaults.headers.common[
+          'Authorization'
+        ] = `Bearer ${access_token}`;
+      }
 
       // Update state
       setUser(user);
@@ -130,17 +139,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const logout = () => {
-    // Remove token and user data from localStorage and cookies
-    if (typeof window !== 'undefined') {
+    // Only interact with browser APIs after confirming we're on the client
+    if (isClient) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
 
       // Clear the cookie
       document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-    }
 
-    // Remove Authorization header
-    delete axios.defaults.headers.common['Authorization'];
+      // Remove Authorization header
+      delete axios.defaults.headers.common['Authorization'];
+    }
 
     // Update state
     setUser(null);
@@ -152,10 +161,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const value = {
     user,
     loading,
+    error,
     login,
     register,
     logout,
-    error,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

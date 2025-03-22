@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { X, CheckCircle, AlertCircle, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -23,6 +23,12 @@ const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Set isMounted to true once component hydrates on client
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const showToast = (message: string, type: ToastType, duration = 4000) => {
     const id = Math.random().toString(36).substring(2, 9);
@@ -30,7 +36,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 
     setToasts((prev) => [...prev, newToast]);
 
-    if (duration !== Infinity) {
+    if (duration !== Infinity && isMounted) {
       setTimeout(() => {
         removeToast(id);
       }, duration);
@@ -44,7 +50,8 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={{ toasts, showToast, removeToast }}>
       {children}
-      <ToastContainer />
+      {/* Only render toast container on the client after hydration */}
+      {isMounted && <ToastContainer />}
     </ToastContext.Provider>
   );
 }
