@@ -86,6 +86,42 @@ const updateChore = async (req, res) => {
     }
 };
 
+// PATCH (update) a chore's status
+const updateChoreStatus = async (req, res) => {
+    try {
+        const { status, completed_at } = req.body;
+
+        // Create update object
+        const updateData = { status };
+
+        // Set completed_at if provided
+        if (completed_at !== undefined) {
+            updateData.completed_at = completed_at;
+        }
+        // If not explicitly provided but status is completed, set to current time
+        else if (status === 'completed') {
+            updateData.completed_at = new Date().toISOString();
+        }
+        // If status changed from completed to something else, clear completed_at
+        else {
+            // We'll let the Chore model handle this logic
+        }
+
+        const updatedChore = await Chore.update(req.params.id, updateData);
+
+        // In a real implementation, we would publish an event to Kafka here
+        // Example: await publishEvent('chore.statusUpdated', updatedChore);
+
+        res.status(200).json(updatedChore);
+    } catch (error) {
+        if (error.message === 'Chore not found') {
+            return res.status(404).json({ message: 'Chore not found' });
+        }
+        console.error(`Error updating chore status ${req.params.id}:`, error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
 // DELETE a chore
 const deleteChore = async (req, res) => {
     try {
@@ -110,5 +146,6 @@ module.exports = {
     getChoreById,
     createChore,
     updateChore,
+    updateChoreStatus,
     deleteChore
 }; 
