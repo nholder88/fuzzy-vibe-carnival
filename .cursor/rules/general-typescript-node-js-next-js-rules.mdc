@@ -1,6 +1,6 @@
 ---
 description: 
-globs: 
+globs: **/frontend/**/*.tsx,**/frontend/**/*.ts
 alwaysApply: false
 ---
 ---
