@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useUser } from '../context/UserContext';
+import { useAuth } from '@/context/auth-context';
 
 import {
   NavigationMenu,
@@ -27,17 +27,17 @@ import { Badge } from '@/components/ui/badge';
 
 export default function Navigation() {
   const router = useRouter();
-  const { user, logout, isLoading } = useUser();
+  const { user, logout, loading } = useAuth();
   const [guestUser, setGuestUser] = useState(false);
 
-  // Check if user is logged in, if not create a guest user
+  // Check if user is logged in, if not it's a guest user
   useEffect(() => {
-    if (!isLoading && !user) {
+    if (!loading && !user) {
       setGuestUser(true);
     } else {
       setGuestUser(false);
     }
-  }, [user, isLoading]);
+  }, [user, loading]);
 
   // Handle navigation
   const handleNavigation = (path: string) => {
@@ -47,7 +47,7 @@ export default function Navigation() {
   // Handle logout
   const handleLogout = async () => {
     if (logout) {
-      await logout();
+      logout();
       router.push('/login');
     }
   };
@@ -104,28 +104,32 @@ export default function Navigation() {
         <div className='ml-auto flex items-center space-x-4'>
           {/* User Profile */}
           <div data-testid='user-profile-container'>
-            {!isLoading && (
+            {!loading && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className='flex items-center space-x-2 focus:outline-none'>
                     <Avatar className='h-8 w-8'>
                       <AvatarImage
                         src={
-                          user?.profileImage ||
-                          'https://i.pravatar.cc/150?u=guest'
+                          'https://i.pravatar.cc/150?u=' +
+                          (user?.email || 'guest')
                         }
-                        alt={user?.name || 'Guest User'}
+                        alt={user?.email || 'Guest User'}
                       />
                       <AvatarFallback>
-                        {user?.name?.charAt(0) || 'G'}
+                        {user?.email?.charAt(0).toUpperCase() || 'G'}
                       </AvatarFallback>
                     </Avatar>
                     <div className='flex flex-col items-start'>
                       <span className='text-sm font-medium'>
-                        {user?.name || 'Guest User'}
+                        {user
+                          ? `${user.firstName || ''} ${
+                              user.lastName || ''
+                            }`.trim()
+                          : 'Guest User'}
                       </span>
                       <Badge variant='outline' className='text-xs'>
-                        {user?.role || 'guest'}
+                        {user ? 'user' : 'guest'}
                       </Badge>
                     </div>
                   </button>
