@@ -9,7 +9,8 @@ const {
     getChoreById,
     createChore,
     updateChore,
-    deleteChore
+    deleteChore,
+    updateChoreStatus
 } = require('../controllers/choresController');
 
 // Middleware for validation errors
@@ -70,6 +71,19 @@ router.put(
     ],
     validateRequest,
     updateChore
+);
+
+// PATCH a chore's status
+router.patch(
+    '/:id/status',
+    [
+        param('id').isUUID().withMessage('Invalid chore ID'),
+        body('status')
+            .isIn(['pending', 'in_progress', 'completed'])
+            .withMessage('Status must be pending, in_progress, or completed')
+    ],
+    validateRequest,
+    updateChoreStatus
 );
 
 // DELETE a chore

@@ -9,6 +9,14 @@ import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import ChoreForm from './ChoreForm';
 import { Chore, HouseholdMember } from '@/types/chores';
 import { format } from 'date-fns';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { choreService } from '@/lib/services/chore-service';
 
 interface ChoreCardProps {
   chore: Chore;
@@ -17,6 +25,8 @@ interface ChoreCardProps {
   onDelete: (id: string) => void;
   householdId: string;
 }
+
+type ChoreStatus = 'pending' | 'in_progress' | 'completed';
 
 const getPriorityColor = (priority: Chore['priority']) => {
   switch (priority) {
@@ -36,6 +46,18 @@ const formatDueDate = (dueDate: string | null) => {
   return format(new Date(dueDate), 'MMM d, yyyy');
 };
 
+const getStatusText = (status: ChoreStatus) => {
+  switch (status) {
+    case 'in_progress':
+      return 'In Progress';
+    case 'completed':
+      return 'Completed';
+    case 'pending':
+    default:
+      return 'Pending';
+  }
+};
+
 export default function ChoreCard({
   chore,
   assignedMember,
@@ -43,6 +65,35 @@ export default function ChoreCard({
   onDelete,
   householdId,
 }: ChoreCardProps) {
+  // Initialize with a default status based on the completed flag
+  const [status, setStatus] = React.useState<ChoreStatus>(
+    chore.completed ? 'completed' : 'pending'
+  );
+
+  const handleStatusChange = async (newStatus: ChoreStatus) => {
+    try {
+      setStatus(newStatus);
+
+      // Determine if the chore is completed based on the status
+      const completed = newStatus === 'completed';
+
+      // Update the completed status if needed
+      if (completed !== chore.completed) {
+        onMarkCompleted(chore.id, completed);
+      }
+
+      // Update the status via API
+      await choreService.updateChoreStatus(chore.id, newStatus);
+
+      // Optional: Emit WebSocket event if needed
+      // We can implement this later
+    } catch (error) {
+      console.error(`Error updating chore status ${chore.id}:`, error);
+      // Revert status on error
+      setStatus(chore.completed ? 'completed' : 'pending');
+    }
+  };
+
   return (
     <Card
       key={chore.id}
@@ -68,9 +119,26 @@ export default function ChoreCard({
               >
                 {chore.title}
               </label>
-              <Badge className={getPriorityColor(chore.priority)}>
-                {chore.priority} priority
-              </Badge>
+              <div className='flex items-center gap-2'>
+                <Select
+                  value={status}
+                  onValueChange={(value) =>
+                    handleStatusChange(value as ChoreStatus)
+                  }
+                >
+                  <SelectTrigger className='w-[140px]'>
+                    <SelectValue placeholder='Select status' />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value='pending'>Pending</SelectItem>
+                    <SelectItem value='in_progress'>In Progress</SelectItem>
+                    <SelectItem value='completed'>Completed</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Badge className={getPriorityColor(chore.priority)}>
+                  {chore.priority} priority
+                </Badge>
+              </div>
             </div>
             {chore.description && (
               <p className='text-gray-500 text-sm'>{chore.description}</p>

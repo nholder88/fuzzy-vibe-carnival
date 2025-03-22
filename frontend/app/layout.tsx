@@ -1,14 +1,13 @@
+import '@/styles/globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import '../styles/globals.css';
-import Navigation from '../components/Navigation';
-import { UserProvider } from '../context/UserContext';
+import { Providers } from './providers';
 
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Home Organization System',
-  description: 'Streamline your household management',
+  title: 'Home Organization App',
+  description: 'An app to manage your household tasks and inventory',
 };
 
 export default function RootLayout({
@@ -19,10 +18,7 @@ export default function RootLayout({
   return (
     <html lang='en'>
       <body className={inter.className}>
-        <UserProvider>
-          <Navigation />
-          <div className='pl-64 pt-4 pr-4 pb-4 min-h-screen'>{children}</div>
-        </UserProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

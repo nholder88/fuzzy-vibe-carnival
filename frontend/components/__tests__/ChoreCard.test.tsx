@@ -1,7 +1,16 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import ChoreCard from '../chores/ChoreCard';
 import { Chore, HouseholdMember } from '@/types/chores';
+import { choreService } from '@/lib/services/chore-service';
+import { format } from 'date-fns';
+
+// Mock the choreService
+jest.mock('@/lib/services/chore-service', () => ({
+  choreService: {
+    updateChoreStatus: jest.fn().mockResolvedValue({}),
+  },
+}));
 
 // Mock Dialog to avoid issues with portals in tests
 jest.mock('@/components/ui/dialog', () => {
@@ -19,6 +28,61 @@ jest.mock('@/components/ui/dialog', () => {
 jest.mock('../chores/ChoreForm', () => {
   return function MockChoreForm() {
     return <div data-testid='chore-form'>Mocked Chore Form</div>;
+  };
+});
+
+// Mock the Select component
+jest.mock('@/components/ui/select', () => {
+  const OriginalModule = jest.requireActual('@/components/ui/select');
+  return {
+    ...OriginalModule,
+    Select: ({
+      children,
+      value,
+      onValueChange,
+    }: {
+      children: React.ReactNode;
+      value: string;
+      onValueChange: (value: string) => void;
+    }) => (
+      <div data-testid='select'>
+        <div data-testid='select-value'>{value}</div>
+        <button
+          data-testid='select-pending'
+          onClick={() => onValueChange('pending')}
+        >
+          Pending
+        </button>
+        <button
+          data-testid='select-in-progress'
+          onClick={() => onValueChange('in_progress')}
+        >
+          In Progress
+        </button>
+        <button
+          data-testid='select-completed'
+          onClick={() => onValueChange('completed')}
+        >
+          Completed
+        </button>
+        {children}
+      </div>
+    ),
+    SelectContent: ({ children }: { children: React.ReactNode }) => (
+      <div data-testid='select-content'>{children}</div>
+    ),
+    SelectItem: ({
+      children,
+    }: {
+      children: React.ReactNode;
+      value: string;
+    }) => <div data-testid='select-item'>{children}</div>,
+    SelectTrigger: ({ children }: { children: React.ReactNode }) => (
+      <div data-testid='select-trigger'>{children}</div>
+    ),
+    SelectValue: ({ children }: { children: React.ReactNode }) => (
+      <div data-testid='select-value-placeholder'>{children}</div>
+    ),
   };
 });
 
@@ -68,7 +132,12 @@ describe('ChoreCard', () => {
     expect(screen.getByText('medium priority')).toBeInTheDocument();
     expect(screen.getByText('Cleaning')).toBeInTheDocument();
     expect(screen.getByText('John Doe')).toBeInTheDocument();
-    expect(screen.getByText('Oct 15, 2023')).toBeInTheDocument();
+
+    // Format the date in the same way as the component
+    if (mockChore.dueDate) {
+      const formattedDate = format(new Date(mockChore.dueDate), 'MMM d, yyyy');
+      expect(screen.getByText(formattedDate)).toBeInTheDocument();
+    }
   });
 
   it('calls onMarkCompleted when checkbox is clicked', () => {
@@ -151,5 +220,84 @@ describe('ChoreCard', () => {
 
     expect(screen.getByText('Test Chore')).toBeInTheDocument();
     expect(screen.queryByText(/Oct 15, 2023/)).not.toBeInTheDocument();
+  });
+
+  it('initializes status to "pending" for non-completed chores', () => {
+    render(
+      <ChoreCard
+        chore={mockChore}
+        assignedMember={mockMember}
+        onMarkCompleted={mockHandlers.onMarkCompleted}
+        onDelete={mockHandlers.onDelete}
+        householdId='household1'
+      />
+    );
+
+    // Get the first select-value element
+    const statusValues = screen.getAllByTestId('select-value');
+    expect(statusValues[0]).toHaveTextContent('pending');
+  });
+
+  it('initializes status to "completed" for completed chores', () => {
+    const completedChore = { ...mockChore, completed: true };
+    render(
+      <ChoreCard
+        chore={completedChore}
+        assignedMember={mockMember}
+        onMarkCompleted={mockHandlers.onMarkCompleted}
+        onDelete={mockHandlers.onDelete}
+        householdId='household1'
+      />
+    );
+
+    // Get the first select-value element
+    const statusValues = screen.getAllByTestId('select-value');
+    expect(statusValues[0]).toHaveTextContent('completed');
+  });
+
+  it('updates status and calls appropriate services when status changes to in_progress', async () => {
+    render(
+      <ChoreCard
+        chore={mockChore}
+        assignedMember={mockMember}
+        onMarkCompleted={mockHandlers.onMarkCompleted}
+        onDelete={mockHandlers.onDelete}
+        householdId='household1'
+      />
+    );
+
+    const inProgressButton = screen.getByTestId('select-in-progress');
+    fireEvent.click(inProgressButton);
+
+    await waitFor(() => {
+      expect(choreService.updateChoreStatus).toHaveBeenCalledWith(
+        '1',
+        'in_progress'
+      );
+      expect(mockHandlers.onMarkCompleted).not.toHaveBeenCalled(); // Shouldn't mark as completed
+    });
+  });
+
+  it('updates status and calls appropriate services when status changes to completed', async () => {
+    render(
+      <ChoreCard
+        chore={mockChore}
+        assignedMember={mockMember}
+        onMarkCompleted={mockHandlers.onMarkCompleted}
+        onDelete={mockHandlers.onDelete}
+        householdId='household1'
+      />
+    );
+
+    const completedButton = screen.getByTestId('select-completed');
+    fireEvent.click(completedButton);
+
+    await waitFor(() => {
+      expect(choreService.updateChoreStatus).toHaveBeenCalledWith(
+        '1',
+        'completed'
+      );
+      expect(mockHandlers.onMarkCompleted).toHaveBeenCalledWith('1', true);
+    });
   });
 });

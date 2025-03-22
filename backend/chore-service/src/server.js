@@ -3,6 +3,9 @@ const cors = require('cors');
 const helmet = require('helmet');
 const { rateLimit } = require('express-rate-limit');
 const dotenv = require('dotenv');
+const { initCronJobs } = require('./cron');
+const { initializeDatabase } = require('./config/init-db');
+const { connectProducer, disconnectProducer } = require('./services/kafkaService');
 
 // Load environment variables
 dotenv.config();
@@ -46,8 +49,51 @@ app.use((err, req, res, next) => {
 
 // Start server
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-    console.log(`Chore service listening on port ${PORT}`);
+
+// Initialize database and then start the server
+const startServer = async () => {
+    try {
+        // Initialize the database
+        await initializeDatabase();
+
+        // Initialize cron jobs for recurring chores
+        if (process.env.DISABLE_CRON !== 'true') {
+            initCronJobs();
+        }
+
+        // Start the server
+        app.listen(PORT, async () => {
+            console.log(`Chore service running on port ${PORT}`);
+
+            // Connect to Kafka
+            await connectProducer();
+        });
+    } catch (error) {
+        console.error('Failed to start server:', error);
+        process.exit(1);
+    }
+};
+
+// Handle shutdown
+process.on('SIGINT', async () => {
+    console.log('Shutting down server...');
+
+    // Disconnect from Kafka
+    await disconnectProducer();
+
+    process.exit(0);
 });
+
+process.on('SIGTERM', async () => {
+    console.log('Shutting down server...');
+
+    // Disconnect from Kafka
+    await disconnectProducer();
+
+    process.exit(0);
+});
+
+// Start the server
+startServer();
 
 module.exports = app; 
