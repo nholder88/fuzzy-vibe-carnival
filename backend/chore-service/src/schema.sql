@@ -1,24 +1,24 @@
 -- Chores table schema
 
-CREATE TABLE IF NOT EXISTS chores ( id UUID PRIMARY KEY,
-                                                    title VARCHAR(100) NOT NULL,
-                                                                       description TEXT, assigned_to UUID,
-                                                                                         household_id UUID NOT NULL,
-                                                                                                           status VARCHAR(20) CHECK (status IN ('pending',
-                                                                                                                                                'in_progress',
-                                                                                                                                                'completed')) NOT NULL,
-                                                                                                                                                              due_date TIMESTAMP,
-                                                                                                                                                                       priority VARCHAR(10) CHECK (priority IN ('low',
-                                                                                                                                                                                                                'medium',
-                                                                                                                                                                                                                'high')) NOT NULL,
-                                                                                                                                                                                                                         recurring VARCHAR(20) CHECK (recurring IN ('none',
-                                                                                                                                                                                                                                                                    'daily',
-                                                                                                                                                                                                                                                                    'weekly',
-                                                                                                                                                                                                                                                                    'monthly')) DEFAULT 'none',
-                                                                                                                                                                                                                                                                                        completed_at TIMESTAMP,
-                                                                                                                                                                                                                                                                                                     created_by UUID,
-                                                                                                                                                                                                                                                                                                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                                                                                                                                                                                                                                                                                                                                  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
+CREATE TABLE IF NOT EXISTS chores (id UUID PRIMARY KEY,
+                                                   title VARCHAR(100) NOT NULL,
+                                                                      description TEXT, assigned_to UUID,
+                                                                                        household_id UUID NOT NULL,
+                                                                                                          status VARCHAR(20) CHECK (status IN ('pending',
+                                                                                                                                               'in_progress',
+                                                                                                                                               'completed')) NOT NULL,
+                                                                                                                                                             due_date TIMESTAMP,
+                                                                                                                                                                      priority VARCHAR(10) CHECK (priority IN ('low',
+                                                                                                                                                                                                               'medium',
+                                                                                                                                                                                                               'high')) NOT NULL,
+                                                                                                                                                                                                                        recurring VARCHAR(20) CHECK (recurring IN ('none',
+                                                                                                                                                                                                                                                                   'daily',
+                                                                                                                                                                                                                                                                   'weekly',
+                                                                                                                                                                                                                                                                   'monthly')) DEFAULT 'none',
+                                                                                                                                                                                                                                                                                       completed_at TIMESTAMP,
+                                                                                                                                                                                                                                                                                                    created_by UUID,
+                                                                                                                                                                                                                                                                                                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                                                                                                                                                                                                                                                                                                                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
 
 -- Index for household_id to optimize household-specific queries
 
