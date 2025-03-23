@@ -2,7 +2,11 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createHousehold, getHouseholds } from '@/lib/api/households';
+import {
+  createHousehold,
+  getHouseholds,
+  inviteToHousehold,
+} from '@/lib/api/households';
 import { useToast } from '@/components/ui/toast';
 import { Household } from '@/lib/types';
 
@@ -44,10 +48,30 @@ export function useHousehold() {
     }
   };
 
+  const inviteMember = async (
+    householdId: string,
+    email: string,
+    role?: string
+  ): Promise<void> => {
+    setIsLoading(true);
+    showToast('Sending invitation...', 'info');
+
+    try {
+      await inviteToHousehold(householdId, email, role);
+      showToast('Invitation sent successfully!', 'success');
+    } catch (error) {
+      console.error('Error inviting member:', error);
+      showToast('Failed to send invitation. Please try again.', 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
     isLoading,
     households,
     createHousehold: handleCreateHousehold,
     fetchHouseholds,
+    inviteMember,
   };
 }

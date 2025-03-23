@@ -29,3 +29,22 @@ export async function getHouseholds(): Promise<Household[]> {
     throw error;
   }
 }
+
+/**
+ * Invite a new member to join a household
+ */
+export async function inviteToHousehold(
+  householdId: string,
+  email: string,
+  role?: string
+): Promise<void> {
+  try {
+    await axios.post(`${API_URL}/households/${householdId}/invites`, {
+      email,
+      role,
+    });
+  } catch (error) {
+    console.error('Error inviting member to household:', error);
+    throw error;
+  }
+}
