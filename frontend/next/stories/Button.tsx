@@ -1,6 +1,5 @@
 import React from 'react';
-
-import './button.css';
+import { cn } from '@/lib/utils';
 
 export interface ButtonProps {
   /** Is this the principal call to action on the page? */
@@ -23,13 +22,15 @@ export const Button = ({
   label,
   ...props
 }: ButtonProps) => {
-  const mode = primary ? 'storybook-button--primary' : 'storybook-button--secondary';
+  const mode = primary
+    ? 'preset-filled-primary-500'
+    : 'preset-outlined-primary-500';
+
+  const sizeClass =
+    size === 'small' ? 'btn-sm' : size === 'large' ? 'btn-lg' : 'btn-base';
+
   return (
-    <button
-      type="button"
-      className={['storybook-button', `storybook-button--${size}`, mode].join(' ')}
-      {...props}
-    >
+    <button type='button' className={cn('btn', sizeClass, mode)} {...props}>
       {label}
       <style jsx>{`
         button {

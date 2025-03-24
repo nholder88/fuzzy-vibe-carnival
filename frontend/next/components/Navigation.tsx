@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { Button } from '@/components/ui/button';
 
 import {
   NavigationMenu,
@@ -98,29 +99,28 @@ export default function Navigation() {
 
           {!loading && !user && (
             <div className='flex items-center space-x-2'>
-              <button
+              <Button
                 onClick={() => handleNavigation('/login')}
-                className='px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-md hover:bg-blue-700'
+                variant='default'
+                size='sm'
               >
                 Sign In
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => handleNavigation('/register')}
-                className='px-4 py-2 text-sm font-medium bg-white text-gray-700 rounded-md border border-gray-300 hover:bg-gray-50'
+                variant='outline'
+                size='sm'
               >
                 Sign Up
-              </button>
+              </Button>
             </div>
           )}
 
           {!loading && user && (
             <div className='flex items-center'>
-              <button
-                onClick={handleLogout}
-                className='px-4 py-2 text-sm font-medium bg-white text-gray-700 rounded-md border border-gray-300 hover:bg-gray-50'
-              >
+              <Button onClick={handleLogout} variant='outline' size='sm'>
                 Sign Out
-              </button>
+              </Button>
             </div>
           )}
         </div>

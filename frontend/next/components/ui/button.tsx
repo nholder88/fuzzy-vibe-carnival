@@ -10,7 +10,7 @@ const buttonVariants = cva('btn', {
       destructive: 'preset-filled-error-500',
       outline: 'preset-outlined-primary-500',
       secondary: 'preset-filled-secondary-500',
-      ghost: 'hover:btn-hover-effect',
+      ghost: 'hover:preset-tonal',
       link: 'btn-link',
     },
     size: {

@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { X, CheckCircle, AlertCircle, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 type ToastType = 'success' | 'error' | 'info';
 
@@ -91,13 +92,15 @@ function ToastContainer() {
             {toast.type === 'info' && <Info className='h-5 w-5' />}
             <p className='text-sm font-medium'>{toast.message}</p>
           </div>
-          <button
+          <Button
             onClick={() => removeToast(toast.id)}
-            className='ml-2 inline-flex h-5 w-5 items-center justify-center rounded-md text-gray-400 hover:text-gray-500'
+            variant='ghost'
+            size='icon'
+            className='ml-2 h-5 w-5 p-0'
           >
             <X className='h-4 w-4' />
             <span className='sr-only'>Close</span>
-          </button>
+          </Button>
         </div>
       ))}
     </div>
