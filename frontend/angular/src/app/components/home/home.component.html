@@ -1,0 +1,58 @@
+<div class="hero-container">
+  <div class="hero-content">
+    <h1 class="hero-title">Simplify Your Home Management</h1>
+    <p class="hero-subtitle">
+      Track chores, manage inventory, and organize shopping lists all in one
+      place.
+    </p>
+    <div class="hero-buttons">
+      <a
+        *ngIf="!authService.isAuthenticated()"
+        mat-raised-button
+        color="primary"
+        routerLink="/register"
+        class="cta-button"
+        >Get Started</a
+      >
+      <a
+        *ngIf="authService.isAuthenticated()"
+        mat-raised-button
+        color="primary"
+        routerLink="/dashboard"
+        class="cta-button"
+        >Go to Dashboard</a
+      >
+    </div>
+  </div>
+</div>
+
+<div class="features-container">
+  <div class="feature">
+    <div class="feature-icon">
+      <span class="material-icons">check_circle</span>
+    </div>
+    <h2>Chore Management</h2>
+    <p>
+      Create, assign, and track household chores. Never forget a task again.
+    </p>
+  </div>
+
+  <div class="feature">
+    <div class="feature-icon">
+      <span class="material-icons">inventory_2</span>
+    </div>
+    <h2>Inventory Tracking</h2>
+    <p>
+      Keep track of household items and supplies. Know when it's time to
+      restock.
+    </p>
+  </div>
+
+  <div class="feature">
+    <div class="feature-icon">
+      <span class="material-icons">shopping_cart</span>
+    </div>
+    <h2>Shopping Lists</h2>
+    <p>Create and share shopping lists with your household members.</p>
+  </div>
+</div>
