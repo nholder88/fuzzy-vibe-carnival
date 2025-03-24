@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+@import '@skeletonlabs/skeleton';
+@import '@skeletonlabs/skeleton/optional/presets';
+@import '@skeletonlabs/skeleton/themes/cerberus';
+
+@source '../../node_modules/@skeletonlabs/skeleton-react/dist';
+
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
@@ -16,6 +22,7 @@
   }
 }
 
+/* ShadCn variables - keeping for transition */
 @layer base {
   :root {
     --background: 0 0% 100%;

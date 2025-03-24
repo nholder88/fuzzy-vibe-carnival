@@ -1,10 +1,11 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { Router } from '@angular/router';
 import { User, RegisterData } from '../models/user.model';
 import { environment } from '../../environments/environment';
 import Cookies from 'js-cookie';
+import { isPlatformBrowser } from '@angular/common';
 
 @Injectable({
   providedIn: 'root',
@@ -19,24 +20,33 @@ export class AuthService {
   private errorSubject = new BehaviorSubject<string | null>(null);
   public error$ = this.errorSubject.asObservable();
 
-  constructor(private http: HttpClient, private router: Router) {
+  private platformId = inject(PLATFORM_ID);
+  private isBrowser = isPlatformBrowser(this.platformId);
+  private http = inject(HttpClient);
+  private router = inject(Router);
+
+  constructor() {
     this.initializeAuth();
   }
 
   private initializeAuth(): void {
     // Check for stored token and user data
     try {
-      const token = localStorage.getItem('token');
-      const userData = localStorage.getItem('user');
+      if (this.isBrowser) {
+        const token = localStorage.getItem('token');
+        const userData = localStorage.getItem('user');
 
-      if (token && userData) {
-        const user = JSON.parse(userData) as User;
-        this.userSubject.next(user);
+        if (token && userData) {
+          const user = JSON.parse(userData) as User;
+          this.userSubject.next(user);
+        }
       }
     } catch (error) {
       console.error('Error initializing auth:', error);
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      if (this.isBrowser) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
     } finally {
       this.loadingSubject.next(false);
     }
@@ -57,15 +67,17 @@ export class AuthService {
             const { access_token, user } = response;
 
             // Store auth data
-            localStorage.setItem('token', access_token);
-            localStorage.setItem('user', JSON.stringify(user));
+            if (this.isBrowser) {
+              localStorage.setItem('token', access_token);
+              localStorage.setItem('user', JSON.stringify(user));
 
-            // Set cookie for middleware
-            Cookies.set('token', access_token, {
-              path: '/',
-              expires: 7,
-              sameSite: 'lax',
-            });
+              // Set cookie for middleware
+              Cookies.set('token', access_token, {
+                path: '/',
+                expires: 7,
+                sameSite: 'lax',
+              });
+            }
 
             // Update user state
             this.userSubject.next(user);
@@ -107,11 +119,13 @@ export class AuthService {
 
   logout(): void {
     // Clear stored data
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    if (this.isBrowser) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
 
-    // Clear the cookie
-    Cookies.remove('token', { path: '/' });
+      // Clear the cookie
+      Cookies.remove('token', { path: '/' });
+    }
 
     // Update state
     this.userSubject.next(null);
@@ -121,8 +135,15 @@ export class AuthService {
   }
 
   getAuthorizationHeader(): string | null {
+    if (!this.isBrowser) return null;
+
+    // Try to get token from localStorage first
     const token = localStorage.getItem('token');
-    return token ? `Bearer ${token}` : null;
+    if (token) return `Bearer ${token}`;
+
+    // Fallback to cookie if available
+    const cookieToken = this.isBrowser ? Cookies.get('token') : null;
+    return cookieToken ? `Bearer ${cookieToken}` : null;
   }
 
   isAuthenticated(): boolean {
