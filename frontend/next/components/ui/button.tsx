@@ -1,45 +1,46 @@
 import * as React from 'react';
-import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
-// Using Skeleton UI's button styling approach
-const buttonVariants = cva('btn', {
-  variants: {
-    variant: {
-      default: 'preset-filled-primary-500',
-      destructive: 'preset-filled-error-500',
-      outline: 'preset-outlined-primary-500',
-      secondary: 'preset-filled-secondary-500',
-      ghost: 'hover:preset-tonal',
-      link: 'btn-link',
-    },
-    size: {
-      default: 'btn-base',
-      sm: 'btn-sm',
-      lg: 'btn-lg',
-      icon: 'btn-icon',
-    },
-  },
-  defaultVariants: {
-    variant: 'default',
-    size: 'default',
-  },
-});
-
-export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
-  asChild?: boolean;
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?:
+    | 'default'
+    | 'destructive'
+    | 'outline'
+    | 'secondary'
+    | 'ghost'
+    | 'link';
+  size?: 'default' | 'sm' | 'lg' | 'icon';
 }
 
 /**
  * A button component using Skeleton UI styling
  */
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, ...props }, ref) => {
+  ({ className, variant = 'default', size = 'default', ...props }, ref) => {
+    const variantClasses = {
+      default: 'preset-filled-primary-500',
+      destructive: 'preset-filled-error-500',
+      outline: 'preset-outlined-primary-500',
+      secondary: 'preset-filled-secondary-500',
+      ghost: 'hover:preset-tonal',
+      link: 'btn-link',
+    };
+
+    const sizeClasses = {
+      default: 'btn-base',
+      sm: 'btn-sm',
+      lg: 'btn-lg',
+      icon: 'btn-icon',
+    };
+
     return (
       <button
-        className={cn(buttonVariants({ variant, size, className }))}
+        className={cn(
+          'btn',
+          variantClasses[variant],
+          sizeClasses[size],
+          className
+        )}
         ref={ref}
         {...props}
       />
@@ -49,4 +50,4 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
 Button.displayName = 'Button';
 
-export { Button, buttonVariants };
+export { Button };

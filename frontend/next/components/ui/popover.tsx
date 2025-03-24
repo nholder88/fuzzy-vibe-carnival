@@ -1,33 +1,66 @@
-"use client"
+'use client';
 
-import * as React from "react"
-import * as PopoverPrimitive from "@radix-ui/react-popover"
+import * as React from 'react';
+import { cn } from '@/lib/utils';
 
-import { cn } from "@/lib/utils"
+interface PopoverProps {
+  children: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
 
-const Popover = PopoverPrimitive.Root
+const Popover = React.forwardRef<HTMLDivElement, PopoverProps>(
+  ({ children, open, onOpenChange, ...props }, ref) => {
+    const [isOpen, setIsOpen] = React.useState(open || false);
 
-const PopoverTrigger = PopoverPrimitive.Trigger
+    React.useEffect(() => {
+      if (open !== undefined) {
+        setIsOpen(open);
+        onOpenChange?.(open);
+      }
+    }, [open, onOpenChange]);
 
-const PopoverAnchor = PopoverPrimitive.Anchor
+    return (
+      <div ref={ref} className='popover relative' {...props}>
+        {children}
+      </div>
+    );
+  }
+);
+Popover.displayName = 'Popover';
 
-const PopoverContent = React.forwardRef<
-  React.ElementRef<typeof PopoverPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>
->(({ className, align = "center", sideOffset = 4, ...props }, ref) => (
-  <PopoverPrimitive.Portal>
-    <PopoverPrimitive.Content
+interface PopoverTriggerProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {}
+
+const PopoverTrigger = React.forwardRef<HTMLButtonElement, PopoverTriggerProps>(
+  ({ className, ...props }, ref) => (
+    <button ref={ref} className={cn('popover-trigger', className)} {...props} />
+  )
+);
+PopoverTrigger.displayName = 'PopoverTrigger';
+
+interface PopoverContentProps extends React.HTMLAttributes<HTMLDivElement> {
+  align?: 'center' | 'start' | 'end';
+  sideOffset?: number;
+}
+
+const PopoverContent = React.forwardRef<HTMLDivElement, PopoverContentProps>(
+  ({ className, align = 'center', sideOffset = 4, ...props }, ref) => (
+    <div
       ref={ref}
-      align={align}
-      sideOffset={sideOffset}
-      className={cn(
-        "z-50 w-72 rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 origin-[--radix-popover-content-transform-origin]",
-        className
-      )}
+      className={cn('popover-content card z-50 w-72 p-4 shadow-lg', className)}
       {...props}
     />
-  </PopoverPrimitive.Portal>
-))
-PopoverContent.displayName = PopoverPrimitive.Content.displayName
+  )
+);
+PopoverContent.displayName = 'PopoverContent';
 
-export { Popover, PopoverTrigger, PopoverContent, PopoverAnchor }
+const PopoverAnchor = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div ref={ref} className={cn('popover-anchor', className)} {...props} />
+));
+PopoverAnchor.displayName = 'PopoverAnchor';
+
+export { Popover, PopoverTrigger, PopoverContent, PopoverAnchor };
