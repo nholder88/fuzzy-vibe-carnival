@@ -51,15 +51,15 @@ export function LoginForm() {
   };
 
   return (
-    <Card className='w-full max-w-md mx-auto'>
+    <Card className='variant-filled-surface'>
       <CardHeader>
-        <CardTitle className='text-2xl'>Login</CardTitle>
+        <CardTitle className='h2'>Login</CardTitle>
         <CardDescription>
           Enter your credentials to access your account
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
+        <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
           <div className='space-y-2'>
             <Label htmlFor='email'>Email</Label>
             <Input
@@ -69,7 +69,7 @@ export function LoginForm() {
               autoComplete='email'
             />
             {errors.email && (
-              <p className='text-sm text-destructive'>{errors.email.message}</p>
+              <p className='text-sm text-error-500'>{errors.email.message}</p>
             )}
           </div>
           <div className='space-y-2'>
@@ -77,7 +77,7 @@ export function LoginForm() {
               <Label htmlFor='password'>Password</Label>
               <Button
                 type='button'
-                variant='ghost'
+                variant='link'
                 size='sm'
                 className='text-xs h-auto p-0'
                 onClick={() => setShowPassword(!showPassword)}
@@ -93,26 +93,31 @@ export function LoginForm() {
               autoComplete='current-password'
             />
             {errors.password && (
-              <p className='text-sm text-destructive'>
+              <p className='text-sm text-error-500'>
                 {errors.password.message}
               </p>
             )}
           </div>
           {error && (
-            <Alert variant='destructive'>
+            <Alert variant='destructive' className='flex items-center gap-2'>
               <AlertCircle className='h-4 w-4' />
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-          <Button type='submit' className='w-full' disabled={authLoading}>
+          <Button
+            type='submit'
+            className='w-full'
+            disabled={authLoading}
+            variant='default'
+          >
             {authLoading ? 'Logging in...' : 'Login'}
           </Button>
         </form>
       </CardContent>
       <CardFooter className='flex flex-col items-center justify-center space-y-2'>
-        <p className='text-sm text-muted-foreground'>
+        <p className='text-sm'>
           Don&apos;t have an account?{' '}
-          <Link href='/register' className='text-primary hover:underline'>
+          <Link href='/register' className='anchor'>
             Register
           </Link>
         </p>

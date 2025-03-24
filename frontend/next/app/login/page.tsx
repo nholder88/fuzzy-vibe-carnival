@@ -8,8 +8,8 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
   return (
-    <div className='container flex h-screen items-center justify-center'>
-      <div className='w-full max-w-md'>
+    <div className='container mx-auto flex h-screen items-center justify-center'>
+      <div className='w-full max-w-md card-container'>
         <LoginForm />
       </div>
     </div>
