@@ -1,13 +1,13 @@
 version: '3.8'
 
 services:
-  # Frontend
+  # Frontend (Angular)
   frontend:
     build:
-      context: ./frontend
+      context: ./frontend/angular
       dockerfile: Dockerfile
     ports:
-      - '3000:3000'
+      - '4200:4200'
     environment:
       - NODE_ENV=development
       - CHORE_SERVICE_URL=http://chore-service:3001
