@@ -5,17 +5,17 @@ export const selectUserState = createFeatureSelector<UserState>('user');
 
 export const selectCurrentUser = createSelector(
   selectUserState,
-  (state: UserState) => state.currentUser
+  (state) => state.currentUser
 );
 
 export const selectUserLoading = createSelector(
   selectUserState,
-  (state: UserState) => state.loading
+  (state) => state.loading
 );
 
 export const selectUserError = createSelector(
   selectUserState,
-  (state: UserState) => state.error
+  (state) => state.error
 );
 
 export const selectIsAuthenticated = createSelector(

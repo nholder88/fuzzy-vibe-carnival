@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -12,7 +12,12 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { CommonModule } from '@angular/common';
-import { AuthService } from '../../../services/auth.service';
+import { Store } from '@ngrx/store';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import * as UserActions from '../../../store/user/user.actions';
+import * as UserSelectors from '../../../store/user/user.selectors';
+import { UserState } from '../../../store/user/user.state';
 
 @Component({
   selector: 'app-login',
@@ -29,14 +34,15 @@ import { AuthService } from '../../../services/auth.service';
     MatProgressSpinnerModule,
   ],
 })
-export class LoginComponent {
+export class LoginComponent implements OnDestroy {
   loginForm: FormGroup;
   loading = false;
   error: string | null = null;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private formBuilder: FormBuilder,
-    private authService: AuthService,
+    private store: Store<{ user: UserState }>,
     private router: Router
   ) {
     this.loginForm = this.formBuilder.group({
@@ -44,14 +50,30 @@ export class LoginComponent {
       password: ['', [Validators.required, Validators.minLength(6)]],
     });
 
-    // Subscribe to loading and error states
-    this.authService.loading$.subscribe((loading) => {
-      this.loading = loading;
-    });
+    // Subscribe to store selectors
+    this.store
+      .select(UserSelectors.selectUserLoading)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((loading) => {
+        this.loading = loading;
+      });
 
-    this.authService.error$.subscribe((error) => {
-      this.error = error;
-    });
+    this.store
+      .select(UserSelectors.selectUserError)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((error) => {
+        this.error = error;
+      });
+
+    // Redirect on successful login
+    this.store
+      .select(UserSelectors.selectIsAuthenticated)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((isAuthenticated) => {
+        if (isAuthenticated) {
+          this.router.navigate(['/']);
+        }
+      });
   }
 
   onSubmit(): void {
@@ -60,6 +82,11 @@ export class LoginComponent {
     }
 
     const { email, password } = this.loginForm.value;
-    this.authService.login(email, password).subscribe();
+    this.store.dispatch(UserActions.login({ email, password }));
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }
