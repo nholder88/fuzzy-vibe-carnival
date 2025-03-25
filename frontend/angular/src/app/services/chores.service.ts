@@ -1,16 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-
-export interface Chore {
-  id: string;
-  title: string;
-  description: string;
-  dueDate: Date;
-  assignedTo: string;
-  status: 'pending' | 'completed';
-}
+import { Chore } from '../store/chores/chores.state';
 
 @Injectable({
   providedIn: 'root',
@@ -18,100 +10,40 @@ export interface Chore {
 export class ChoresService {
   private apiUrl = `${environment.apiUrl}/chores`;
 
-  // Mock chores data for initial development
-  private mockChores: Chore[] = [
-    {
-      id: '1',
-      title: 'Vacuum living room',
-      description: 'Vacuum the carpet in the living room',
-      dueDate: new Date('2024-03-25'),
-      assignedTo: 'John',
-      status: 'pending',
-    },
-    {
-      id: '2',
-      title: 'Wash dishes',
-      description: 'Clean all dishes in the sink',
-      dueDate: new Date('2024-03-24'),
-      assignedTo: 'Mary',
-      status: 'completed',
-    },
-    {
-      id: '3',
-      title: 'Take out trash',
-      description: 'Take out all trash bags to the bin',
-      dueDate: new Date('2024-03-24'),
-      assignedTo: 'John',
-      status: 'pending',
-    },
-  ];
-
   constructor(private http: HttpClient) {}
 
-  // Get all chores
-  getChores(): Observable<Chore[]> {
-    // For development, use mock data instead of actual API call
-    // TODO: Replace with HTTP call when API is ready
-    // return this.http.get<Chore[]>(this.apiUrl);
-    return of(this.mockChores);
+  getChores(householdId: string): Observable<Chore[]> {
+    return this.http.get<Chore[]>(`${this.apiUrl}?householdId=${householdId}`);
   }
 
-  // Get a single chore by ID
-  getChore(id: string): Observable<Chore | undefined> {
-    // TODO: Replace with HTTP call when API is ready
-    // return this.http.get<Chore>(`${this.apiUrl}/${id}`);
-    const chore = this.mockChores.find((c) => c.id === id);
-    return of(chore);
+  getChoreById(id: string): Observable<Chore> {
+    return this.http.get<Chore>(`${this.apiUrl}/${id}`);
   }
 
-  // Create a new chore
-  createChore(chore: Omit<Chore, 'id'>): Observable<Chore> {
-    // TODO: Replace with HTTP call when API is ready
-    // return this.http.post<Chore>(this.apiUrl, chore);
-    const newChore: Chore = {
-      ...chore,
-      id: Date.now().toString(), // Generate a unique ID
+  createChore(data: {
+    householdId: string;
+    title: string;
+    description?: string;
+    assignedTo?: string;
+    dueDate?: string;
+    priority: 'low' | 'medium' | 'high';
+    recurrence?: {
+      frequency: 'daily' | 'weekly' | 'monthly';
+      interval: number;
     };
-    this.mockChores.push(newChore);
-    return of(newChore);
+  }): Observable<Chore> {
+    return this.http.post<Chore>(this.apiUrl, data);
   }
 
-  // Update an existing chore
-  updateChore(
-    id: string,
-    chore: Partial<Chore>
-  ): Observable<Chore | undefined> {
-    // TODO: Replace with HTTP call when API is ready
-    // return this.http.put<Chore>(`${this.apiUrl}/${id}`, chore);
-    const index = this.mockChores.findIndex((c) => c.id === id);
-    if (index !== -1) {
-      this.mockChores[index] = { ...this.mockChores[index], ...chore };
-      return of(this.mockChores[index]);
-    }
-    return of(undefined);
+  updateChore(id: string, changes: Partial<Chore>): Observable<Chore> {
+    return this.http.patch<Chore>(`${this.apiUrl}/${id}`, changes);
   }
 
-  // Delete a chore
-  deleteChore(id: string): Observable<boolean> {
-    // TODO: Replace with HTTP call when API is ready
-    // return this.http.delete(`${this.apiUrl}/${id}`);
-    const index = this.mockChores.findIndex((c) => c.id === id);
-    if (index !== -1) {
-      this.mockChores.splice(index, 1);
-      return of(true);
-    }
-    return of(false);
+  deleteChore(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 
-  // Toggle chore status between pending and completed
-  toggleChoreStatus(id: string): Observable<Chore | undefined> {
-    const index = this.mockChores.findIndex((c) => c.id === id);
-    if (index !== -1) {
-      const currentStatus = this.mockChores[index].status;
-      const newStatus = currentStatus === 'completed' ? 'pending' : 'completed';
-      this.mockChores[index] = { ...this.mockChores[index], status: newStatus };
-      return of(this.mockChores[index]);
-    }
-    return of(undefined);
+  completeChore(id: string): Observable<Chore> {
+    return this.http.post<Chore>(`${this.apiUrl}/${id}/complete`, {});
   }
 }
