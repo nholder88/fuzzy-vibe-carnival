@@ -8,7 +8,7 @@ import { Chore } from '../store/chores/chores.state';
   providedIn: 'root',
 })
 export class ChoresService {
-  private apiUrl = `${environment.apiUrl}/chores`;
+  private apiUrl = `${environment.choreServiceUrl}`;
 
   constructor(private http: HttpClient) {}
 
@@ -47,3 +47,5 @@ export class ChoresService {
     return this.http.post<Chore>(`${this.apiUrl}/${id}/complete`, {});
   }
 }
+
+export type { Chore };

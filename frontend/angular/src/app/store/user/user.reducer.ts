@@ -45,5 +45,24 @@ export const userReducer = createReducer(
     ...state,
     loading: false,
     error,
+  })),
+
+  on(UserActions.register, (state) => ({
+    ...state,
+    loading: true,
+    error: null,
+  })),
+
+  on(UserActions.registerSuccess, (state, { user }) => ({
+    ...state,
+    currentUser: user,
+    loading: false,
+    error: null,
+  })),
+
+  on(UserActions.registerFailure, (state, { error }) => ({
+    ...state,
+    loading: false,
+    error,
   }))
 );

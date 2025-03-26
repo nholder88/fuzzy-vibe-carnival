@@ -18,7 +18,7 @@ export class AuthService {
   private platformId = inject(PLATFORM_ID);
   private http = inject(HttpClient);
   private router = inject(Router);
-  private apiUrl = `${environment.apiUrl}/auth`;
+  private apiUrl = `${environment.authServiceUrl}/auth`;
 
   private get isBrowser(): boolean {
     return isPlatformBrowser(this.platformId);
@@ -31,6 +31,14 @@ export class AuthService {
         this.userSubject.next(JSON.parse(storedUser));
       }
     }
+  }
+
+  getAuthorizationHeader(): string | null {
+    if (this.isBrowser) {
+      const token = localStorage.getItem('token');
+      return token ? `Bearer ${token}` : null;
+    }
+    return null;
   }
 
   login(email: string, password: string): Observable<User> {
@@ -49,6 +57,7 @@ export class AuthService {
               id: response.user.id,
               email: response.user.email,
               name: response.user.name || response.user.email,
+              householdId: response.user.householdId ?? '',
               isAuthenticated: true,
             };
 
@@ -88,6 +97,7 @@ export class AuthService {
           id: response.user.id,
           email: response.user.email,
           name: response.user.name || response.user.email,
+          householdId: response.user.householdId ?? '',
           isAuthenticated: true,
         }))
       );
@@ -117,6 +127,7 @@ export class AuthService {
             id: response.user.id,
             email: response.user.email,
             name: response.user.name || response.user.email,
+            householdId: response.user.householdId ?? '',
             isAuthenticated: true,
           };
           this.userSubject.next(user);
@@ -126,6 +137,7 @@ export class AuthService {
         id: response.user.id,
         email: response.user.email,
         name: response.user.name || response.user.email,
+        householdId: response.user.householdId ?? '',
         isAuthenticated: true,
       }))
     );
@@ -145,5 +157,67 @@ export class AuthService {
 
   get isAuthenticated(): boolean {
     return !!this.userSubject.value;
+  }
+
+  register(data: RegisterData): Observable<User> {
+    this.loadingSubject.next(true);
+    this.errorSubject.next(null);
+
+    return this.http
+      .post<{ access_token: string; user: any }>(
+        `${this.apiUrl}/register`,
+        data
+      )
+      .pipe(
+        tap({
+          next: (response) => {
+            const user: User = {
+              id: response.user.id,
+              email: response.user.email,
+              name: response.user.name || response.user.email,
+              householdId: response.user.householdId ?? '',
+              isAuthenticated: true,
+            };
+
+            if (this.isBrowser) {
+              localStorage.setItem('token', response.access_token);
+              localStorage.setItem('user', JSON.stringify(user));
+
+              Cookies.set('token', response.access_token, {
+                path: '/',
+                expires: 7,
+                secure: true,
+                sameSite: 'strict',
+              });
+            }
+
+            this.userSubject.next(user);
+            this.loadingSubject.next(false);
+            this.errorSubject.next(null);
+          },
+          error: (error) => {
+            if (this.isBrowser) {
+              localStorage.removeItem('token');
+              localStorage.removeItem('user');
+              Cookies.remove('token', { path: '/' });
+            }
+            this.userSubject.next(null);
+            this.errorSubject.next(
+              error.error?.message || 'Registration failed'
+            );
+            this.loadingSubject.next(false);
+          },
+          complete: () => {
+            this.loadingSubject.next(false);
+          },
+        }),
+        map((response) => ({
+          id: response.user.id,
+          email: response.user.email,
+          name: response.user.name || response.user.email,
+          householdId: response.user.householdId ?? '',
+          isAuthenticated: true,
+        }))
+      );
   }
 }

@@ -15,7 +15,8 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { ChoresService, Chore } from '../../../services/chores.service';
+import { ChoresService } from '../../../services/chores.service';
+import { Chore } from '../../../store/chores/chores.state';
 
 @Component({
   selector: 'app-chore-form',
@@ -72,13 +73,13 @@ export class ChoreFormComponent {
   }
 
   loadChoreData(id: string): void {
-    this.choresService.getChore(id).subscribe({
-      next: (chore) => {
+    this.choresService.getChoreById(id).subscribe({
+      next: (chore: Chore) => {
         if (chore) {
           this.choreForm.patchValue({
             title: chore.title,
             description: chore.description,
-            dueDate: new Date(chore.dueDate),
+            dueDate: chore.dueDate ? new Date(chore.dueDate) : null,
             assignedTo: chore.assignedTo,
           });
         } else {
@@ -88,7 +89,7 @@ export class ChoreFormComponent {
           this.router.navigate(['/chores']);
         }
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error loading chore:', error);
         this.snackBar.open('Error loading chore data', 'Dismiss', {
           duration: 3000,
