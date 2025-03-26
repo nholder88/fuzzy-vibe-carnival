@@ -27,6 +27,7 @@ export const appConfig: ApplicationConfig = {
       household: householdReducer,
       chores: choresReducer,
     }),
+    provideEffects(),
     provideEffects([UserEffects, HouseholdEffects, ChoresEffects]),
     provideStoreDevtools({
       maxAge: 25,
