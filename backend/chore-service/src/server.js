@@ -23,8 +23,9 @@ app.use(helmet());
 app.use(cors());
 app.use(express.json());
 
-// Setup request logging
-app.use(morgan('combined', { stream }));
+// Setup request logging with detailed format
+morgan.token('body', (req) => JSON.stringify(req.body));
+app.use(morgan(':remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent" :response-time ms :body', { stream }));
 
 // Log all routes on startup
 app._router.stack.forEach((middleware) => {
