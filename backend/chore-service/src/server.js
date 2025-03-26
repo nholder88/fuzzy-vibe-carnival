@@ -3,6 +3,11 @@ const cors = require('cors');
 const helmet = require('helmet');
 const { rateLimit } = require('express-rate-limit');
 const dotenv = require('dotenv');
+const morgan = require('morgan');
+const { initCronJobs } = require('./cron');
+const { initializeDatabase } = require('./config/init-db');
+const { connectProducer, disconnectProducer } = require('./services/kafkaService');
+const { logger, stream } = require('./utils/logger');
 
 // Load environment variables
 dotenv.config();
@@ -17,6 +22,17 @@ const app = express();
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
+
+// Setup request logging with detailed format
+morgan.token('body', (req) => JSON.stringify(req.body));
+app.use(morgan(':remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent" :response-time ms :body', { stream }));
+
+// Log all routes on startup
+app._router.stack.forEach((middleware) => {
+    if (middleware.route) {
+        logger.info(`Route: ${Object.keys(middleware.route.methods).join(', ').toUpperCase()} ${middleware.route.path}`);
+    }
+});
 
 // Rate limiting
 const limiter = rateLimit({
@@ -37,7 +53,16 @@ app.get('/health', (req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-    console.error(err.stack);
+    logger.error('Unhandled error:', {
+        error: err.message,
+        stack: err.stack,
+        url: req.originalUrl,
+        method: req.method,
+        body: req.body,
+        params: req.params,
+        query: req.query
+    });
+
     res.status(500).json({
         message: 'An unexpected error occurred',
         error: process.env.NODE_ENV === 'development' ? err.message : undefined
@@ -46,8 +71,56 @@ app.use((err, req, res, next) => {
 
 // Start server
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-    console.log(`Chore service listening on port ${PORT}`);
+
+// Initialize database and then start the server
+const startServer = async () => {
+    try {
+        // Initialize the database
+        await initializeDatabase();
+        logger.info('Database initialized successfully');
+
+        // Initialize cron jobs for recurring chores
+        if (process.env.DISABLE_CRON !== 'true') {
+            initCronJobs();
+            logger.info('Cron jobs initialized');
+        }
+
+        // Start the server
+        app.listen(PORT, async () => {
+            logger.info(`Chore service running on port ${PORT}`);
+
+            // Connect to Kafka
+            await connectProducer();
+            logger.info('Kafka producer connected successfully');
+        });
+    } catch (error) {
+        logger.error('Failed to start server:', { error: error.message, stack: error.stack });
+        process.exit(1);
+    }
+};
+
+// Handle shutdown
+process.on('SIGINT', async () => {
+    logger.info('Shutting down server...');
+
+    // Disconnect from Kafka
+    await disconnectProducer();
+    logger.info('Kafka producer disconnected');
+
+    process.exit(0);
 });
+
+process.on('SIGTERM', async () => {
+    logger.info('Shutting down server...');
+
+    // Disconnect from Kafka
+    await disconnectProducer();
+    logger.info('Kafka producer disconnected');
+
+    process.exit(0);
+});
+
+// Start the server
+startServer();
 
 module.exports = app; 

@@ -1,6 +1,6 @@
 ---
 description: 
-globs: 
+globs: tailwind.config.js
 alwaysApply: false
 ---
 ---

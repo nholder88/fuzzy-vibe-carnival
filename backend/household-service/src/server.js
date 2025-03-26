@@ -7,10 +7,10 @@ require('dotenv').config();
 
 const householdRoutes = require('./routes/householdRoutes');
 const householdMemberRoutes = require('./routes/householdMemberRoutes');
-const { sequelize } = require('./models');
+const initializeDatabase = require('./utils/dbInit');
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3002;
 
 // Middleware
 app.use(helmet());
@@ -53,14 +53,14 @@ app.use((err, req, res, next) => {
 // Connect to database and start server
 async function startServer() {
     try {
-        await sequelize.authenticate();
-        console.log('Database connection established successfully.');
+        await initializeDatabase();
 
         app.listen(PORT, () => {
             console.log(`Household service running on port ${PORT}`);
         });
     } catch (error) {
-        console.error('Unable to connect to the database:', error);
+        console.error('Unable to start server:', error);
+        process.exit(1);
     }
 }
 

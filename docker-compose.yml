@@ -1,27 +1,46 @@
 version: '3.8'
 
 services:
-  # Frontend
+  # Frontend (Angular)
   frontend:
     build:
-      context: ./frontend
+      context: ./frontend/angular
       dockerfile: Dockerfile
     ports:
-      - '3000:3000'
+      - '4200:4200'
     environment:
       - NODE_ENV=development
       - CHORE_SERVICE_URL=http://chore-service:3001
       - INVENTORY_SERVICE_URL=http://inventory-service:8000
       - SHOPPING_SERVICE_URL=http://shopping-service:5000
       - HOUSEHOLD_SERVICE_URL=http://household-service:3002
+      - AUTH_SERVICE_URL=http://auth-service:3003
     depends_on:
       - chore-service
       - inventory-service
       - shopping-service
       - household-service
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
+      - auth-service
+
+  # Auth Service
+  auth-service:
+    build:
+      context: ./backend/auth-service
+      dockerfile: Dockerfile
+    ports:
+      - '3003:3003'
+    environment:
+      - NODE_ENV=development
+      - PORT=3003
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=auth_service
+      - JWT_SECRET=your_jwt_secret
+      - JWT_EXPIRATION=3600s
+    depends_on:
+      - postgres
 
   # Chore Service
   chore-service:
@@ -45,9 +64,6 @@ services:
       - postgres
       - redis
       - kafka
-    volumes:
-      - ./backend/chore-service:/app
-      - /app/node_modules
 
   # Inventory Service
   inventory-service:
@@ -69,8 +85,6 @@ services:
       - postgres
       - redis
       - kafka
-    volumes:
-      - ./backend/inventory-service:/app
 
   # Shopping Service
   shopping-service:
@@ -88,8 +102,6 @@ services:
       - postgres
       - redis
       - kafka
-    volumes:
-      - ./backend/shopping-service:/app
 
   # Household Service
   household-service:
@@ -113,22 +125,20 @@ services:
       - postgres
       - redis
       - kafka
-    volumes:
-      - ./backend/household-service:/app
-      - /app/node_modules
 
   # Database
   postgres:
-    image: postgres:14-alpine
+    build:
+      context: ./infrastructure/docker/postgres
+      dockerfile: Dockerfile
     ports:
       - '5432:5432'
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      - POSTGRES_MULTIPLE_DATABASES=chore_service,inventory_service,shopping_service,household_service
+      - POSTGRES_MULTIPLE_DATABASES=chore_service,inventory_service,shopping_service,household_service,auth_service
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./infrastructure/docker/postgres:/docker-entrypoint-initdb.d
 
   # Redis for caching
   redis:
