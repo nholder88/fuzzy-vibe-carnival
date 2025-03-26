@@ -71,3 +71,4 @@ ENV/
 # Logs
 logs
 *.log 
+*storybook.log

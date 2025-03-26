@@ -1,0 +1,39 @@
+.chores-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.chores-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+
+  h1 {
+    margin: 0;
+    font-size: 1.8rem;
+  }
+}
+
+.chores-table {
+  width: 100%;
+}
+
+.status-badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+
+  &.status-completed {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+  }
+
+  &.status-pending {
+    background-color: #fff8e1;
+    color: #f57f17;
+  }
+}

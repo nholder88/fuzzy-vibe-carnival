@@ -1,0 +1,43 @@
+<mat-toolbar color="primary" class="header">
+  <div class="logo">
+    <a routerLink="/" class="logo-text">HomeOrg</a>
+  </div>
+
+  <div class="navbar-links" *ngIf="user">
+    <a mat-button routerLink="/dashboard" routerLinkActive="active"
+      >Dashboard</a
+    >
+    <a mat-button routerLink="/chores" routerLinkActive="active">Chores</a>
+    <a mat-button routerLink="/inventory" routerLinkActive="active"
+      >Inventory</a
+    >
+    <a mat-button routerLink="/shopping" routerLinkActive="active">Shopping</a>
+  </div>
+
+  <span class="spacer"></span>
+
+  <div class="auth-buttons" *ngIf="!loading">
+    <ng-container *ngIf="!user">
+      <a mat-button routerLink="/login">Sign In</a>
+      <a mat-raised-button color="accent" routerLink="/register">Sign Up</a>
+    </ng-container>
+
+    <ng-container *ngIf="user">
+      <button mat-button [matMenuTriggerFor]="userMenu">
+        <mat-icon>account_circle</mat-icon>
+        {{ user.firstName || user.email }}
+        <mat-icon>arrow_drop_down</mat-icon>
+      </button>
+      <mat-menu #userMenu="matMenu">
+        <button mat-menu-item routerLink="/profile">
+          <mat-icon>person</mat-icon>
+          <span>Profile</span>
+        </button>
+        <button mat-menu-item (click)="logout()">
+          <mat-icon>exit_to_app</mat-icon>
+          <span>Sign Out</span>
+        </button>
+      </mat-menu>
+    </ng-container>
+  </div>
+</mat-toolbar>

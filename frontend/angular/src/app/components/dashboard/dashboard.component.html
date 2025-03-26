@@ -1,0 +1,68 @@
+<div class="dashboard-container">
+  <div class="welcome-section">
+    <h1>Welcome, {{ user?.firstName || "User" }}!</h1>
+    <p>Access all your home management tools from this dashboard.</p>
+  </div>
+
+  <div class="dashboard-grid">
+    <mat-card class="dashboard-card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>check_circle</mat-icon>
+        <mat-card-title>Chores</mat-card-title>
+        <mat-card-subtitle>Manage your household tasks</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <p>View, create, and assign chores to household members.</p>
+      </mat-card-content>
+      <mat-card-actions>
+        <a mat-button color="primary" routerLink="/chores">Go to Chores</a>
+      </mat-card-actions>
+    </mat-card>
+
+    <mat-card class="dashboard-card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>inventory_2</mat-icon>
+        <mat-card-title>Inventory</mat-card-title>
+        <mat-card-subtitle>Track your household items</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <p>Keep track of all your household items, food, and supplies.</p>
+      </mat-card-content>
+      <mat-card-actions>
+        <a mat-button color="primary" routerLink="/inventory"
+          >Go to Inventory</a
+        >
+      </mat-card-actions>
+    </mat-card>
+
+    <mat-card class="dashboard-card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>shopping_cart</mat-icon>
+        <mat-card-title>Shopping Lists</mat-card-title>
+        <mat-card-subtitle>Organize your shopping needs</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <p>Create and manage shopping lists for groceries and supplies.</p>
+      </mat-card-content>
+      <mat-card-actions>
+        <a mat-button color="primary" routerLink="/shopping">Go to Shopping</a>
+      </mat-card-actions>
+    </mat-card>
+
+    <mat-card class="dashboard-card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>group</mat-icon>
+        <mat-card-title>Household</mat-card-title>
+        <mat-card-subtitle>Manage your household members</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <p>Add and manage members of your household.</p>
+      </mat-card-content>
+      <mat-card-actions>
+        <a mat-button color="primary" routerLink="/household"
+          >Go to Household</a
+        >
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>
