@@ -6,6 +6,7 @@ A microservices-based application designed to streamline household management, i
 
 - **Frontend:** React (Next.js) with TypeScript
 - **Backend Services:**
+  - **Authentication Service:** Node.js (Express.js) with JWT, OAuth2, and RBAC
   - **Chore Management:** Node.js (Express.js)
   - **Inventory Tracking:** Python (FastAPI)
   - **Shopping List & Instacart Integration:** .NET (ASP.NET Core)
@@ -20,7 +21,78 @@ A microservices-based application designed to streamline household management, i
 
 ## Getting Started
 
-### Prerequisites
+You can run this application either using Docker exclusively or with a hybrid approach using local development tools.
+
+### Docker-Only Deployment
+
+If you want to run everything in Docker containers, follow these steps:
+
+1. Install Docker and Docker Compose:
+
+   - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Windows/macOS)
+   - [Docker Engine](https://docs.docker.com/engine/install/) (Linux)
+
+2. Clone the repository:
+
+   ```bash
+   git clone https://github.com/your-username/home-organization-system.git
+   cd home-organization-system
+   ```
+
+3. Set up environment variables:
+
+   ```bash
+   # Copy environment files for each service
+   find . -name ".env.example" -exec sh -c 'cp "$1" "${1%.example}"' _ {} \;
+   ```
+
+   Update the `.env` files in each service directory with your credentials.
+
+4. Build and start all services:
+
+   ```bash
+   # Build all services
+   docker compose build
+
+   # Start all services in detached mode
+   docker compose up -d
+   ```
+
+5. Verify the deployment:
+
+   ```bash
+   # Check the status of all containers
+   docker compose ps
+
+   # View logs from all services
+   docker compose logs -f
+
+   # View logs from a specific service
+   docker compose logs -f [service-name]
+   ```
+
+6. Access the services:
+
+   - Frontend: http://localhost:3000
+   - Auth Service: http://localhost:4000
+   - Chore Service: http://localhost:4001
+   - Inventory Service: http://localhost:4002
+   - Shopping Service: http://localhost:4003
+   - Household Service: http://localhost:4004
+
+7. Stop the services:
+
+   ```bash
+   # Stop and remove containers
+   docker compose down
+
+   # Stop and remove containers, volumes, and images
+   docker compose down -v --rmi all
+   ```
+
+### Local Development Setup
+
+#### Prerequisites
 
 - Node.js (v18+)
 - Python (v3.10+)
@@ -31,7 +103,7 @@ A microservices-based application designed to streamline household management, i
 - A terminal that supports running multiple instances (Windows Terminal, iTerm2, GNOME Terminal, or similar)
 - Bash shell environment (Git Bash on Windows, Terminal on macOS/Linux)
 
-### System Dependencies
+#### System Dependencies
 
 1. Install Node.js and pnpm:
 
