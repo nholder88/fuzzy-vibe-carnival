@@ -76,7 +76,9 @@ describe('AuthService', () => {
           },
         });
 
-      const req = httpMock.expectOne(`${environment.apiUrl}/auth/login`);
+      const req = httpMock.expectOne(
+        `${environment.authServiceUrl}/auth/login`
+      );
       expect(req.request.method).toBe('POST');
       req.flush(mockLoginResponse);
     });
@@ -107,7 +109,9 @@ describe('AuthService', () => {
           },
         });
 
-      const req = httpMock.expectOne(`${environment.apiUrl}/auth/login`);
+      const req = httpMock.expectOne(
+        `${environment.authServiceUrl}/auth/login`
+      );
       expect(req.request.method).toBe('POST');
       req.flush(
         { message: errorMessage },
@@ -150,14 +154,18 @@ describe('AuthService', () => {
       });
 
       // Handle first request (error)
-      const firstReq = httpMock.expectOne(`${environment.apiUrl}/auth/login`);
+      const firstReq = httpMock.expectOne(
+        `${environment.authServiceUrl}/auth/login`
+      );
       firstReq.flush(
         { message: 'Invalid credentials' },
         { status: 401, statusText: 'Unauthorized' }
       );
 
       // Handle second request (success)
-      const secondReq = httpMock.expectOne(`${environment.apiUrl}/auth/login`);
+      const secondReq = httpMock.expectOne(
+        `${environment.authServiceUrl}/auth/login`
+      );
       secondReq.flush(mockLoginResponse);
     });
   });
@@ -190,7 +198,9 @@ describe('AuthService', () => {
         },
       });
 
-      const req = httpMock.expectOne(`${environment.apiUrl}/auth/logout`);
+      const req = httpMock.expectOne(
+        `${environment.authServiceUrl}/auth/logout`
+      );
       expect(req.request.method).toBe('POST');
       req.flush({});
     });
@@ -217,7 +227,7 @@ describe('AuthService', () => {
         },
       });
 
-      const req = httpMock.expectOne(`${environment.apiUrl}/auth/me`);
+      const req = httpMock.expectOne(`${environment.authServiceUrl}/auth/me`);
       expect(req.request.method).toBe('GET');
       req.flush({ user: mockUser });
     });
