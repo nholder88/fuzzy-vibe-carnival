@@ -1,38 +1,32 @@
-const http = require('http');
+const { Client } = require('pg');
 
-const data = JSON.stringify({
-    email: 'test@example.com',
-    password: 'Password123!'
-});
+async function testUsers() {
+    const client = new Client({
+        host: process.env.POSTGRES_HOST || 'localhost',
+        port: parseInt(process.env.POSTGRES_PORT || '5432', 10),
+        user: process.env.POSTGRES_USER || 'postgres',
+        password: process.env.POSTGRES_PASSWORD || 'postgres',
+        database: process.env.POSTGRES_DB || 'auth_service',
+    });
 
-const options = {
-    hostname: 'localhost',
-    port: 3003,
-    path: '/api/auth/login',
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json',
-        'Content-Length': data.length
+    try {
+        await client.connect();
+        console.log('Connected to database');
+
+        // Update users with householdId = '1'
+        await client.query('UPDATE users SET "householdId" = $1 WHERE email IN ($2, $3)', ['1', 'test@example.com', 'admin@example.com']);
+        console.log('Updated users with householdId = 1');
+
+        // Verify the changes
+        const result = await client.query('SELECT id, email, "firstName", "lastName", "isVerified", "householdId" FROM users');
+        console.log('Users in database:');
+        console.log(result.rows);
+
+    } catch (error) {
+        console.error('Error:', error);
+    } finally {
+        await client.end();
     }
-};
+}
 
-const req = http.request(options, (res) => {
-    console.log(`STATUS: ${res.statusCode}`);
-    console.log(`HEADERS: ${JSON.stringify(res.headers)}`);
-
-    let responseData = '';
-    res.on('data', (chunk) => {
-        responseData += chunk;
-    });
-
-    res.on('end', () => {
-        console.log('Response Body:', responseData);
-    });
-});
-
-req.on('error', (e) => {
-    console.error(`Problem with request: ${e.message}`);
-});
-
-req.write(data);
-req.end(); 
+testUsers(); 
