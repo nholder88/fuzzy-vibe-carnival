@@ -73,12 +73,12 @@ If you want to run everything in Docker containers, follow these steps:
 
 6. Access the services:
 
-   - Frontend: http://localhost:3000
-   - Auth Service: http://localhost:4000
-   - Chore Service: http://localhost:4001
-   - Inventory Service: http://localhost:4002
-   - Shopping Service: http://localhost:4003
-   - Household Service: http://localhost:4004
+   - Frontend: http://localhost:4200
+   - Auth Service: http://localhost:3003
+   - Chore Service: http://localhost:3001
+   - Inventory Service: http://localhost:8000
+   - Shopping Service: http://localhost:5000
+   - Household Service: http://localhost:3002
 
 7. Stop the services:
 
