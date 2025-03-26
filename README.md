@@ -6,7 +6,7 @@ A microservices-based application designed to streamline household management, i
 
 - **Frontend:** React (Next.js) with TypeScript
 - **Backend Services:**
-  - **Authentication Service:** Node.js (Express.js) with JWT, OAuth2, and RBAC
+  - **Authentication Service:** NestJS with JWT, OAuth2, RBAC, and Passport
   - **Chore Management:** Node.js (Express.js)
   - **Inventory Tracking:** Python (FastAPI)
   - **Shopping List & Instacart Integration:** .NET (ASP.NET Core)
