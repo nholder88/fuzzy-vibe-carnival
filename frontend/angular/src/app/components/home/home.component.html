@@ -7,7 +7,7 @@
     </p>
     <div class="hero-buttons">
       <a
-        *ngIf="!authService.isAuthenticated()"
+        *ngIf="!selectIsAuthenticated"
         mat-raised-button
         color="primary"
         routerLink="/register"
@@ -15,7 +15,7 @@
         >Get Started</a
       >
       <a
-        *ngIf="authService.isAuthenticated()"
+        *ngIf="selectIsAuthenticated"
         mat-raised-button
         color="primary"
         routerLink="/dashboard"

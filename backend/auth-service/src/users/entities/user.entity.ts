@@ -29,6 +29,9 @@ export class User {
   @Column({ default: false })
   isVerified: boolean;
 
+  @Column({ nullable: true })
+  householdId: string;
+
   @CreateDateColumn()
   createdAt: Date;
 

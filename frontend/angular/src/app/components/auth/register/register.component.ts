@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -12,7 +12,12 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { CommonModule } from '@angular/common';
-import { AuthService } from '../../../services/auth.service';
+import { Store } from '@ngrx/store';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { AppState } from '../../../store/app.state';
+import * as UserActions from '../../../store/user/user.actions';
+import * as UserSelectors from '../../../store/user/user.selectors';
 
 @Component({
   selector: 'app-register',
@@ -29,14 +34,15 @@ import { AuthService } from '../../../services/auth.service';
     MatProgressSpinnerModule,
   ],
 })
-export class RegisterComponent {
+export class RegisterComponent implements OnDestroy {
   registerForm: FormGroup;
   loading = false;
   error: string | null = null;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private formBuilder: FormBuilder,
-    private authService: AuthService,
+    private store: Store<AppState>,
     private router: Router
   ) {
     this.registerForm = this.formBuilder.group(
@@ -52,27 +58,41 @@ export class RegisterComponent {
       }
     );
 
-    // Subscribe to loading and error states
-    this.authService.loading$.subscribe((loading) => {
-      this.loading = loading;
-    });
+    // Subscribe to store selectors
+    this.store
+      .select(UserSelectors.selectUserLoading)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((loading) => {
+        this.loading = loading;
+      });
 
-    this.authService.error$.subscribe((error) => {
-      this.error = error;
-    });
+    this.store
+      .select(UserSelectors.selectUserError)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((error) => {
+        this.error = error;
+      });
+
+    // Redirect on successful registration
+    this.store
+      .select(UserSelectors.selectIsAuthenticated)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((isAuthenticated) => {
+        if (isAuthenticated) {
+          this.router.navigate(['/']);
+        }
+      });
   }
 
-  // Custom validator to check if passwords match
-  passwordMatchValidator(form: FormGroup) {
-    const password = form.get('password')?.value;
-    const confirmPassword = form.get('confirmPassword')?.value;
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 
-    if (password !== confirmPassword) {
-      form.get('confirmPassword')?.setErrors({ passwordMismatch: true });
-      return { passwordMismatch: true };
-    }
-
-    return null;
+  passwordMatchValidator(g: FormGroup) {
+    return g.get('password')?.value === g.get('confirmPassword')?.value
+      ? null
+      : { mismatch: true };
   }
 
   onSubmit(): void {
@@ -82,18 +102,13 @@ export class RegisterComponent {
 
     const { email, password, firstName, lastName } = this.registerForm.value;
 
-    this.authService
-      .register({
+    this.store.dispatch(
+      UserActions.register({
         email,
         password,
         firstName: firstName || undefined,
         lastName: lastName || undefined,
       })
-      .subscribe({
-        next: () => {
-          // Registration successful, navigate to login
-          this.router.navigate(['/login']);
-        },
-      });
+    );
   }
 }

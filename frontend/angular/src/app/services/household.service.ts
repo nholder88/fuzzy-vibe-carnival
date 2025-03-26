@@ -8,7 +8,7 @@ import { Household } from '../store/household/household.state';
   providedIn: 'root',
 })
 export class HouseholdService {
-  private apiUrl = `${environment.apiUrl}/households`;
+  private apiUrl = `${environment.householdServiceUrl}`;
 
   constructor(private http: HttpClient) {}
 

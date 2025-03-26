@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { of } from 'rxjs';
 import { map, mergeMap, catchError } from 'rxjs/operators';
@@ -7,6 +7,9 @@ import { HouseholdService } from '../../services/household.service';
 
 @Injectable()
 export class HouseholdEffects {
+  private actions$ = inject(Actions);
+  private householdService = inject(HouseholdService);
+
   loadHouseholds$ = createEffect(() =>
     this.actions$.pipe(
       ofType(HouseholdActions.loadHouseholds),
@@ -74,9 +77,4 @@ export class HouseholdEffects {
       )
     )
   );
-
-  constructor(
-    private actions$: Actions,
-    private householdService: HouseholdService
-  ) {}
 }

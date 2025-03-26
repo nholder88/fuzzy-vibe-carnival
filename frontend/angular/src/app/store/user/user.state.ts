@@ -2,6 +2,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
+  householdId: string;
   isAuthenticated: boolean;
 }
 

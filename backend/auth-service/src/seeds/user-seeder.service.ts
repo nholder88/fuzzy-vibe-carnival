@@ -19,6 +19,7 @@ export class UserSeederService {
         firstName: 'Test',
         lastName: 'User',
         isVerified: true,
+        householdId: '1',
       },
       {
         email: 'admin@example.com',
@@ -26,6 +27,7 @@ export class UserSeederService {
         firstName: 'Admin',
         lastName: 'User',
         isVerified: true,
+        householdId: '1',
       },
     ];
 
@@ -38,6 +40,7 @@ export class UserSeederService {
         userDto.firstName = userData.firstName;
         userDto.lastName = userData.lastName;
         userDto.isVerified = userData.isVerified;
+        userDto.householdId = userData.householdId;
 
         await this.usersService.create(userDto);
         this.logger.log(`User seeded: ${userData.email}`);

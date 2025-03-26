@@ -5,6 +5,7 @@ import {
   MinLength,
   IsOptional,
   IsBoolean,
+  IsUUID,
 } from 'class-validator';
 
 export class CreateUserDto {
@@ -28,4 +29,8 @@ export class CreateUserDto {
   @IsBoolean()
   @IsOptional()
   isVerified?: boolean;
+
+  @IsUUID()
+  @IsOptional()
+  householdId?: string;
 }
