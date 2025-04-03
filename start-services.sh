@@ -44,12 +44,12 @@ start_service() {
 # Start backend services
 start_service "Auth Service" "backend/auth-service" "pnpm install && pnpm start"
 start_service "Chore Service" "backend/chore-service" "pnpm install && pnpm start"
-start_service "Inventory Service" "backend/inventory-service" "pnpm install && pnpm start"
-start_service "Shopping Service" "backend/shopping-service" "pnpm install && pnpm start"
+start_service "Inventory Service" "backend/inventory-service" "pip install -r requirements.txt && python -m uvicorn app.main:app --reload"
+start_service "Shopping Service" "backend/shopping-service" "dotnet restore && dotnet run --project src/ShoppingService.API"
 start_service "Household Service" "backend/household-service" "pnpm install && pnpm start"
 
 # Start frontend service
-start_service "Frontend" "frontend" "pnpm install && pnpm start"
+start_service "Frontend" "frontend/angular" "pnpm install && pnpm start"
 
 echo
 if [ ${#failed_services[@]} -eq 0 ]; then
