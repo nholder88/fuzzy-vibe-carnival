@@ -1,35 +1,33 @@
-const { Sequelize } = require('sequelize');
-const config = require('../config/database');
 const { Client } = require('pg');
+const { Sequelize } = require('sequelize');
+const config = process.env.NODE_ENV === 'test'
+    ? require('../config/test')
+    : require('../config/database');
 
 async function initializeDatabase() {
-    const env = process.env.NODE_ENV || 'development';
-    const dbConfig = config[env];
-
-    // Connect to postgres to create database if it doesn't exist
+    // Create a client to connect to the default postgres database
     const client = new Client({
-        user: dbConfig.username,
-        password: dbConfig.password,
-        host: dbConfig.host,
-        port: dbConfig.port,
-        database: 'postgres' // Connect to default postgres database
+        host: config.host,
+        port: config.port,
+        user: config.username,
+        password: config.password,
+        database: 'postgres'
     });
 
     try {
         await client.connect();
 
-        // Check if database exists
-        const checkDb = await client.query(
-            `SELECT 1 FROM pg_database WHERE datname = '${dbConfig.database}'`
+        // Check if the database exists
+        const result = await client.query(
+            `SELECT 1 FROM pg_database WHERE datname = '${config.database}'`
         );
 
-        if (checkDb.rows.length === 0) {
-            console.log(`Database ${dbConfig.database} does not exist. Creating...`);
+        if (result.rowCount === 0) {
             // Create the database
-            await client.query(`CREATE DATABASE ${dbConfig.database}`);
-            console.log(`Database ${dbConfig.database} created successfully`);
+            await client.query(`CREATE DATABASE ${config.database}`);
+            console.log(`Database ${config.database} created successfully`);
         } else {
-            console.log(`Database ${dbConfig.database} already exists`);
+            console.log(`Database ${config.database} already exists`);
         }
     } catch (error) {
         console.error('Error initializing database:', error);
@@ -39,14 +37,11 @@ async function initializeDatabase() {
     }
 
     // Initialize Sequelize connection
-    const sequelize = new Sequelize(dbConfig);
+    const sequelize = new Sequelize(config);
     try {
         await sequelize.authenticate();
         console.log('Database connection established successfully');
-
-        // Sync all models
-        await sequelize.sync();
-        console.log('Database models synchronized successfully');
+        return sequelize;
     } catch (error) {
         console.error('Unable to connect to the database:', error);
         throw error;

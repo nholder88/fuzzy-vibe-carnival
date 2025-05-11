@@ -1,4 +1,5 @@
 const { HouseholdMember, Household } = require('../models');
+const householdMemberService = require('../services/householdMemberService');
 
 // Get all members of a household
 exports.getHouseholdMembers = async (req, res) => {
@@ -71,31 +72,33 @@ exports.addHouseholdMember = async (req, res) => {
 // Update a member's role in a household
 exports.updateMemberRole = async (req, res) => {
     try {
-        const { householdId, userId } = req.params;
-        const { role } = req.body;
+        const { userId } = req.params;
+        const { role, householdId } = req.body;
+
+        if (!householdId) {
+            return res.status(400).json({ message: 'Household ID is required' });
+        }
 
         if (!role) {
             return res.status(400).json({ message: 'Role is required' });
         }
 
-        // Validate role
-        if (!['admin', 'member'].includes(role)) {
-            return res.status(400).json({ message: "Role must be either 'admin' or 'member'" });
+        // Only allow admins to update roles (including their own)
+        const isAdmin = await householdMemberService.isAdmin(req.user.id, householdId);
+        console.log('DEBUG isAdmin:', isAdmin, 'user:', req.user.id, 'household:', householdId);
+        if (!isAdmin) {
+            return res.status(403).json({ message: 'Only household admins can update member roles' });
         }
 
-        const member = await HouseholdMember.findOne({
-            where: { household_id: householdId, user_id: userId }
-        });
-
-        if (!member) {
-            return res.status(404).json({ message: 'Household member not found' });
-        }
-
-        member.role = role;
-        await member.save();
-
-        res.status(200).json(member);
+        const updatedMember = await householdMemberService.updateMemberRole(userId, householdId, role);
+        res.json(updatedMember);
     } catch (error) {
+        if (error.message === 'Member not found') {
+            return res.status(404).json({ message: error.message });
+        }
+        if (error.message === 'Invalid role') {
+            return res.status(400).json({ message: error.message });
+        }
         console.error('Error updating member role:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
