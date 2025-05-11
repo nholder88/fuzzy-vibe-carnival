@@ -34,7 +34,7 @@ app.use(expressWinston.logger({
 
 // Routes
 app.use('/api/households', householdRoutes);
-app.use('/api/household-members', householdMemberRoutes);
+app.use('/api/households/members', householdMemberRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -50,11 +50,14 @@ app.use((err, req, res, next) => {
     });
 });
 
-// Connect to database and start server
+// Only start the server if not in test environment
+if (process.env.NODE_ENV !== 'test') {
+    startServer();
+}
+
 async function startServer() {
     try {
         await initializeDatabase();
-
         app.listen(PORT, () => {
             console.log(`Household service running on port ${PORT}`);
         });
@@ -64,4 +67,4 @@ async function startServer() {
     }
 }
 
-startServer(); 
+module.exports = app; 

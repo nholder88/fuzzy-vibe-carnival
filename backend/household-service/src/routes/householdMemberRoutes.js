@@ -15,4 +15,6 @@ router.put('/household/:householdId/user/:userId', authMiddleware.authenticate, 
 // Remove a member from a household
 router.delete('/household/:householdId/user/:userId', authMiddleware.authenticate, authMiddleware.isHouseholdAdmin, householdMemberController.removeMember);
 
+router.patch('/:userId/role', authMiddleware.authenticate, householdMemberController.updateMemberRole);
+
 module.exports = router; 
