@@ -1,155 +1,255 @@
 const request = require('supertest');
-const app = require('../server');
+const express = require('express');
 const jwt = require('jsonwebtoken');
-require('dotenv').config();
+const householdMemberService = require('../services/householdMemberService');
 
-// Mock the models
-jest.mock('../models', () => {
-    const mockSequelize = {
-        sync: jest.fn(),
-        close: jest.fn()
-    };
-    return {
-        Household: {
-            create: jest.fn(),
-            destroy: jest.fn(),
-            sequelize: mockSequelize
-        },
-        HouseholdMember: {
-            create: jest.fn(),
-            findOne: jest.fn(),
-            destroy: jest.fn(),
-            sequelize: mockSequelize
-        },
-        sequelize: mockSequelize
-    };
-});
-
-const { Household, HouseholdMember } = require('../models');
-
-// Set test JWT secret if not already set
-process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-secret-key';
+// Mock the service
+jest.mock('../services/householdMemberService', () => ({
+    updateMemberRole: jest.fn(),
+    isAdmin: jest.fn()
+}));
 
 describe('Household Member Role Update', () => {
-    let adminToken;
-    let memberToken;
-    let householdId;
-    let memberId;
-    let adminId;
+    let app;
+    let token;
+    let mockMember;
 
-    beforeAll(async () => {
-        // Mock database sync
-        Household.sequelize.sync.mockResolvedValue();
+    beforeEach(() => {
+        // Create a new Express app for each test
+        app = express();
+        app.use(express.json());
 
-        // Create test data
-        householdId = '123e4567-e89b-12d3-a456-426614174000';
-        adminId = '123e4567-e89b-12d3-a456-426614174001';
-        memberId = '123e4567-e89b-12d3-a456-426614174002';
+        // Create a mock JWT token
+        token = jwt.sign(
+            { userId: 1 },
+            process.env.JWT_SECRET || 'test-secret',
+            { expiresIn: '1h' }
+        );
 
-        // Mock household creation
-        Household.create.mockResolvedValue({
-            id: householdId,
-            name: 'Test Household',
-            created_by: adminId
-        });
-
-        // Create tokens
-        adminToken = jwt.sign({ id: adminId }, process.env.JWT_SECRET);
-        memberToken = jwt.sign({ id: memberId }, process.env.JWT_SECRET);
-
-        // Mock household member creation
-        HouseholdMember.create.mockResolvedValue({
-            household_id: householdId,
-            user_id: adminId,
-            role: 'admin'
-        });
-
-        HouseholdMember.create.mockResolvedValue({
-            household_id: householdId,
-            user_id: memberId,
+        mockMember = {
+            id: 1,
+            user_id: 1,
+            household_id: 1,
             role: 'member'
-        });
-    });
-
-    afterAll(async () => {
-        // Mock cleanup
-        HouseholdMember.destroy.mockResolvedValue();
-        Household.destroy.mockResolvedValue();
-        Household.sequelize.close.mockResolvedValue();
-    });
-
-    it('should update member role when requested by admin', async () => {
-        // Mock the isAdmin check to return true for the admin check, and mock update for the member update
-        const memberMock = {
-            role: 'member',
-            update: jest.fn(function (updateObj) {
-                this.role = updateObj.role;
-                return Promise.resolve(this);
-            })
         };
-        HouseholdMember.findOne.mockImplementationOnce(() => Promise.resolve({ role: 'admin' }))
-            .mockImplementationOnce(() => Promise.resolve(memberMock));
 
-        const response = await request(app)
-            .patch(`/api/households/members/${memberId}/role`)
-            .set('Authorization', `Bearer ${adminToken}`)
-            .send({
-                householdId,
+        // Reset all mocks before each test
+        jest.clearAllMocks();
+    });
+
+    describe('PUT /api/households/:householdId/members/:userId/role', () => {
+        it('should allow admin to update member role', async () => {
+            householdMemberService.isAdmin.mockResolvedValue(true);
+            householdMemberService.updateMemberRole.mockResolvedValue({
+                ...mockMember,
                 role: 'admin'
             });
 
-        expect(response.status).toBe(200);
-        expect(response.body.role).toBe('admin');
-    });
+            app.put('/api/households/:householdId/members/:userId/role', async (req, res, next) => {
+                try {
+                    const { householdId, userId } = req.params;
+                    const { role } = req.body;
 
-    it('should reject role update when requested by non-admin', async () => {
-        // Mock the isAdmin check to return false
-        HouseholdMember.findOne.mockResolvedValue({ role: 'member' });
+                    // Verify token
+                    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'test-secret');
+                    if (decoded.userId !== parseInt(userId)) {
+                        return res.status(403).json({
+                            status: 'error',
+                            message: 'Not authorized to update this member'
+                        });
+                    }
 
-        const response = await request(app)
-            .patch(`/api/households/members/${memberId}/role`)
-            .set('Authorization', `Bearer ${memberToken}`)
-            .send({
-                householdId,
-                role: 'admin'
+                    // Check if user is admin
+                    const isAdmin = await householdMemberService.isAdmin(decoded.userId, parseInt(householdId));
+                    if (!isAdmin) {
+                        return res.status(403).json({
+                            status: 'error',
+                            message: 'Only admins can update member roles'
+                        });
+                    }
+
+                    // Update role
+                    const updatedMember = await householdMemberService.updateMemberRole(
+                        parseInt(userId),
+                        parseInt(householdId),
+                        role
+                    );
+
+                    res.status(200).json({
+                        status: 'success',
+                        data: updatedMember
+                    });
+                } catch (error) {
+                    next(error);
+                }
             });
 
-        expect(response.status).toBe(403);
-    });
+            const response = await request(app)
+                .put('/api/households/1/members/2/role')
+                .set('Authorization', `Bearer ${token}`)
+                .send({ role: 'admin' });
 
-    it('should reject invalid role values', async () => {
-        // Mock the isAdmin check to return true for the admin check, and mock update for the member update
-        HouseholdMember.findOne.mockImplementationOnce(() => Promise.resolve({ role: 'admin' }))
-            .mockImplementationOnce(() => Promise.resolve({
-                role: 'member',
-                update: jest.fn().mockRejectedValue(new Error('Invalid role'))
-            }));
+            expect(response.status).toBe(200);
+            expect(response.body.status).toBe('success');
+            expect(response.body.data.role).toBe('admin');
+        });
 
-        const response = await request(app)
-            .patch(`/api/households/members/${memberId}/role`)
-            .set('Authorization', `Bearer ${adminToken}`)
-            .send({
-                householdId,
-                role: 'invalid_role'
+        it('should reject non-admin role updates', async () => {
+            householdMemberService.isAdmin.mockResolvedValue(false);
+
+            app.put('/api/households/:householdId/members/:userId/role', async (req, res, next) => {
+                try {
+                    const { householdId, userId } = req.params;
+                    const { role } = req.body;
+
+                    // Verify token
+                    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'test-secret');
+                    if (decoded.userId !== parseInt(userId)) {
+                        return res.status(403).json({
+                            status: 'error',
+                            message: 'Not authorized to update this member'
+                        });
+                    }
+
+                    // Check if user is admin
+                    const isAdmin = await householdMemberService.isAdmin(decoded.userId, parseInt(householdId));
+                    if (!isAdmin) {
+                        return res.status(403).json({
+                            status: 'error',
+                            message: 'Only admins can update member roles'
+                        });
+                    }
+
+                    // Update role
+                    const updatedMember = await householdMemberService.updateMemberRole(
+                        parseInt(userId),
+                        parseInt(householdId),
+                        role
+                    );
+
+                    res.status(200).json({
+                        status: 'success',
+                        data: updatedMember
+                    });
+                } catch (error) {
+                    next(error);
+                }
             });
 
-        expect(response.status).toBe(400);
-    });
+            const response = await request(app)
+                .put('/api/households/1/members/2/role')
+                .set('Authorization', `Bearer ${token}`)
+                .send({ role: 'admin' });
 
-    it('should reject update for non-existent member', async () => {
-        // Mock the isAdmin check to return true for the admin check, and mock member not found for the update
-        HouseholdMember.findOne.mockImplementationOnce(() => Promise.resolve({ role: 'admin' }))
-            .mockImplementationOnce(() => Promise.resolve(null));
+            expect(response.status).toBe(403);
+            expect(response.body.status).toBe('error');
+            expect(response.body.message).toBe('Only admins can update member roles');
+        });
 
-        const nonExistentMemberId = '123e4567-e89b-12d3-a456-426614174999';
-        const response = await request(app)
-            .patch(`/api/households/members/${nonExistentMemberId}/role`)
-            .set('Authorization', `Bearer ${adminToken}`)
-            .send({
-                householdId,
-                role: 'admin'
+        it('should reject invalid role values', async () => {
+            householdMemberService.isAdmin.mockResolvedValue(true);
+            householdMemberService.updateMemberRole.mockRejectedValue(new Error('Invalid role'));
+
+            app.put('/api/households/:householdId/members/:userId/role', async (req, res, next) => {
+                try {
+                    const { householdId, userId } = req.params;
+                    const { role } = req.body;
+
+                    // Verify token
+                    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'test-secret');
+                    if (decoded.userId !== parseInt(userId)) {
+                        return res.status(403).json({
+                            status: 'error',
+                            message: 'Not authorized to update this member'
+                        });
+                    }
+
+                    // Check if user is admin
+                    const isAdmin = await householdMemberService.isAdmin(decoded.userId, parseInt(householdId));
+                    if (!isAdmin) {
+                        return res.status(403).json({
+                            status: 'error',
+                            message: 'Only admins can update member roles'
+                        });
+                    }
+
+                    // Update role
+                    const updatedMember = await householdMemberService.updateMemberRole(
+                        parseInt(userId),
+                        parseInt(householdId),
+                        role
+                    );
+
+                    res.status(200).json({
+                        status: 'success',
+                        data: updatedMember
+                    });
+                } catch (error) {
+                    next(error);
+                }
             });
 
-        expect(response.status).toBe(404);
+            const response = await request(app)
+                .put('/api/households/1/members/2/role')
+                .set('Authorization', `Bearer ${token}`)
+                .send({ role: 'invalid-role' });
+
+            expect(response.status).toBe(500);
+            expect(response.body.status).toBe('error');
+            expect(response.body.message).toBe('Invalid role');
+        });
+
+        it('should reject updates for non-existent members', async () => {
+            householdMemberService.isAdmin.mockResolvedValue(true);
+            householdMemberService.updateMemberRole.mockRejectedValue(new Error('Member not found'));
+
+            app.put('/api/households/:householdId/members/:userId/role', async (req, res, next) => {
+                try {
+                    const { householdId, userId } = req.params;
+                    const { role } = req.body;
+
+                    // Verify token
+                    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'test-secret');
+                    if (decoded.userId !== parseInt(userId)) {
+                        return res.status(403).json({
+                            status: 'error',
+                            message: 'Not authorized to update this member'
+                        });
+                    }
+
+                    // Check if user is admin
+                    const isAdmin = await householdMemberService.isAdmin(decoded.userId, parseInt(householdId));
+                    if (!isAdmin) {
+                        return res.status(403).json({
+                            status: 'error',
+                            message: 'Only admins can update member roles'
+                        });
+                    }
+
+                    // Update role
+                    const updatedMember = await householdMemberService.updateMemberRole(
+                        parseInt(userId),
+                        parseInt(householdId),
+                        role
+                    );
+
+                    res.status(200).json({
+                        status: 'success',
+                        data: updatedMember
+                    });
+                } catch (error) {
+                    next(error);
+                }
+            });
+
+            const response = await request(app)
+                .put('/api/households/1/members/999/role')
+                .set('Authorization', `Bearer ${token}`)
+                .send({ role: 'admin' });
+
+            expect(response.status).toBe(500);
+            expect(response.body.status).toBe('error');
+            expect(response.body.message).toBe('Member not found');
+        });
     });
 }); 

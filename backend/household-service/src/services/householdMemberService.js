@@ -1,9 +1,9 @@
 const { AppError } = require('../utils/errors');
-const HouseholdMemberRepository = require('../repositories/HouseholdMemberRepository');
+const householdMemberRepository = require('../repositories/HouseholdMemberRepository');
 
 class HouseholdMemberService {
     constructor() {
-        this.householdMemberRepository = new HouseholdMemberRepository();
+        this.householdMemberRepository = householdMemberRepository;
         this.VALID_ROLES = ['admin', 'member'];
     }
 
@@ -21,16 +21,24 @@ class HouseholdMemberService {
             throw new AppError('Member not found', 404);
         }
 
-        return this.householdMemberRepository.update(member.id, { role });
+        try {
+            return await this.householdMemberRepository.update(member.id, { role });
+        } catch (error) {
+            throw new AppError(`Failed to update member role: ${error.message}`, 500);
+        }
     }
 
     async isAdmin(userId, householdId) {
-        const member = await this.householdMemberRepository.findMemberByUserIdAndHouseholdId(
-            userId,
-            householdId
-        );
+        try {
+            const member = await this.householdMemberRepository.findMemberByUserIdAndHouseholdId(
+                userId,
+                householdId
+            );
 
-        return member?.role === 'admin';
+            return member?.role === 'admin';
+        } catch (error) {
+            throw new AppError(`Failed to check admin status: ${error.message}`, 500);
+        }
     }
 }
 
