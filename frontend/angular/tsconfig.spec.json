@@ -4,9 +4,8 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./out-tsc/spec",
-    "types": ["jest", "node"],
-    "esModuleInterop": true,
-    "emitDecoratorMetadata": true
+    "types": ["jest", "node", "puppeteer"],
+    "isolatedModules": true
   },
-  "include": ["src/**/*.spec.ts", "src/**/*.d.ts"]
+  "include": ["src/**/*.spec.ts", "src/**/*.d.ts", "e2e/**/*.spec.ts"]
 }
