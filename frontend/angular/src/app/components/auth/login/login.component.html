@@ -13,6 +13,7 @@
               type="email"
               formControlName="email"
               placeholder="Enter your email"
+              data-testid="email-input"
             />
             <mat-error *ngIf="loginForm.get('email')?.hasError('required')"
               >Email is required</mat-error
@@ -31,6 +32,7 @@
               type="password"
               formControlName="password"
               placeholder="Enter your password"
+              data-testid="password-input"
             />
             <mat-error *ngIf="loginForm.get('password')?.hasError('required')"
               >Password is required</mat-error
@@ -48,20 +50,26 @@
             type="submit"
             [disabled]="loginForm.invalid || loading"
             class="login-button"
+            data-testid="login-button"
           >
-            <mat-spinner diameter="20" *ngIf="loading"></mat-spinner>
+            <mat-spinner
+              diameter="20"
+              *ngIf="loading"
+              data-testid="login-spinner"
+            ></mat-spinner>
             <span *ngIf="!loading">Log In</span>
           </button>
         </div>
 
-        <div *ngIf="error" class="error-message">
+        <div *ngIf="error" class="error-message" data-testid="login-error">
           {{ error }}
         </div>
       </form>
     </mat-card-content>
     <mat-card-actions>
       <div class="register-link">
-        Don't have an account? <a routerLink="/register">Sign up</a>
+        Don't have an account?
+        <a routerLink="/register" data-testid="register-link">Sign up</a>
       </div>
     </mat-card-actions>
   </mat-card>

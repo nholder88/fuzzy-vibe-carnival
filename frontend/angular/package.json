@@ -11,7 +11,9 @@
     "test:coverage": "jest --coverage",
     "test:e2e": "jest --config jest.e2e.config.js",
     "test:all": "pnpm test && pnpm test:e2e",
-    "serve:ssr:angular-frontend": "node dist/angular-frontend/server/server.mjs"
+    "serve:ssr:angular-frontend": "node dist/angular-frontend/server/server.mjs",
+    "pretest:e2e": "ng serve --port 4200 &",
+    "posttest:e2e": "pkill -f 'ng serve' || true"
   },
   "private": true,
   "dependencies": {
