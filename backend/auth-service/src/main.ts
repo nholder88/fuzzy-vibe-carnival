@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
-
+import { ensureDatabase } from './config/bootstrap-db';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
@@ -19,6 +19,7 @@ async function bootstrap() {
 
   // Set global prefix
   app.setGlobalPrefix('api');
+  ensureDatabase();
 
   const port = process.env.PORT || 3003;
   await app.listen(port);

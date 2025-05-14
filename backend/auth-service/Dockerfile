@@ -8,7 +8,9 @@ RUN npm install
 
 COPY . .
 
-RUN npm run build
+COPY create-db.js ./src/cpo
+
+RUN node create-db.js && npm run build
 
 EXPOSE 3003
 
