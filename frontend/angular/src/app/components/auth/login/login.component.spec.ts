@@ -59,6 +59,7 @@ describe('LoginComponent', () => {
     const testCredentials = {
       email: 'test@example.com',
       password: 'password123',
+      rememberMe: false,
     };
 
     component.loginForm.setValue(testCredentials);

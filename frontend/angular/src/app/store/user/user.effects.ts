@@ -1,31 +1,33 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { of } from 'rxjs';
+import { of, Observable } from 'rxjs';
 import { map, mergeMap, catchError, tap } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import * as UserActions from './user.actions';
 import { AuthService } from '../../services/auth.service';
+import { Action } from '@ngrx/store';
 
 @Injectable()
 export class UserEffects {
-  private actions$ = inject(Actions);
-  private authService = inject(AuthService);
-  private router = inject(Router);
-
   login$ = createEffect(() =>
     this.actions$.pipe(
       ofType(UserActions.login),
-      mergeMap(({ email, password }) =>
-        this.authService.login(email, password).pipe(
-          map((user) => UserActions.loginSuccess({ user })),
-          catchError((error) =>
-            of(
-              UserActions.loginFailure({
-                error: error.error?.message || 'Login failed',
-              })
+      mergeMap(
+        ({
+          email,
+          password,
+          rememberMe,
+        }: {
+          email: string;
+          password: string;
+          rememberMe: boolean;
+        }) =>
+          this.authService.login(email, password, rememberMe).pipe(
+            map((user: any) => UserActions.loginSuccess({ user })),
+            catchError((error: any) =>
+              of(UserActions.loginFailure({ error: error.message }))
             )
           )
-        )
       )
     )
   );
@@ -34,11 +36,23 @@ export class UserEffects {
     () =>
       this.actions$.pipe(
         ofType(UserActions.loginSuccess),
-        tap(() => {
-          this.router.navigate(['/']);
-        })
+        tap(() => this.router.navigate(['/']))
       ),
     { dispatch: false }
+  );
+
+  logout$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(UserActions.logout),
+      mergeMap(() =>
+        this.authService.logout().pipe(
+          map(() => UserActions.logoutSuccess()),
+          catchError((error: any) =>
+            of(UserActions.loginFailure({ error: error.message }))
+          )
+        )
+      )
+    )
   );
 
   loadUser$ = createEffect(() =>
@@ -46,13 +60,9 @@ export class UserEffects {
       ofType(UserActions.loadUser),
       mergeMap(() =>
         this.authService.getCurrentUser().pipe(
-          map((user) => UserActions.loadUserSuccess({ user })),
-          catchError((error) =>
-            of(
-              UserActions.loadUserFailure({
-                error: error.error?.message || 'Failed to load user',
-              })
-            )
+          map((user: any) => UserActions.loadUserSuccess({ user })),
+          catchError((error: any) =>
+            of(UserActions.loadUserFailure({ error: error.message }))
           )
         )
       )
@@ -62,19 +72,26 @@ export class UserEffects {
   register$ = createEffect(() =>
     this.actions$.pipe(
       ofType(UserActions.register),
-      mergeMap(({ email, password, firstName, lastName }) =>
-        this.authService
-          .register({ email, password, firstName, lastName })
-          .pipe(
-            map((user) => UserActions.registerSuccess({ user })),
-            catchError((error) =>
-              of(
-                UserActions.registerFailure({
-                  error: error.error?.message || 'Registration failed',
-                })
+      mergeMap(
+        ({
+          email,
+          password,
+          firstName,
+          lastName,
+        }: {
+          email: string;
+          password: string;
+          firstName?: string;
+          lastName?: string;
+        }) =>
+          this.authService
+            .register({ email, password, firstName, lastName })
+            .pipe(
+              map((user: any) => UserActions.registerSuccess({ user })),
+              catchError((error: any) =>
+                of(UserActions.registerFailure({ error: error.message }))
               )
             )
-          )
       )
     )
   );
@@ -83,10 +100,14 @@ export class UserEffects {
     () =>
       this.actions$.pipe(
         ofType(UserActions.registerSuccess),
-        tap(() => {
-          this.router.navigate(['/login']);
-        })
+        tap(() => this.router.navigate(['/']))
       ),
     { dispatch: false }
   );
+
+  constructor(
+    private actions$: Actions,
+    private authService: AuthService,
+    private router: Router
+  ) {}
 }

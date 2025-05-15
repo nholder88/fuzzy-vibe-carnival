@@ -6,34 +6,46 @@ services:
     command: npm run dev
     environment:
       - NODE_ENV=development
-      - DEBUG=*
-    # Add development tools to frontend service
+      - DEBUG=app:*
+    volumes:
+      - /app/frontend/angular/node_modules
+      - /app/frontend/angular/dist
 
   chore-service:
     # Development configurations for chore service
     command: npm run dev
     environment:
       - NODE_ENV=development
-      - DEBUG=*
+      - DEBUG=app:*
+    volumes:
+      - /app/backend/chore-service/node_modules
 
   inventory-service:
     # Development configurations for inventory service
     command: uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
     environment:
       - LOG_LEVEL=DEBUG
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - /app/backend/inventory-service/.venv
 
   shopping-service:
     # Development configurations for shopping service
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - DOTNET_USE_POLLING_FILE_WATCHER=1
+    volumes:
+      - /app/backend/shopping-service/bin
+      - /app/backend/shopping-service/obj
 
   household-service:
     # Development configurations for household service
     command: npm run dev
     environment:
       - NODE_ENV=development
-      - DEBUG=*
+      - DEBUG=app:*
+    volumes:
+      - /app/backend/household-service/node_modules
 
   # Development tools
   pgadmin:
@@ -42,8 +54,8 @@ services:
     ports:
       - '5050:80'
     environment:
-      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
-      - PGADMIN_DEFAULT_PASSWORD=admin
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL:-admin@localhost}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD:-admin}
     volumes:
       - pgadmin_data:/var/lib/pgadmin
     depends_on:

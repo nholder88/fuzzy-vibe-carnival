@@ -1,5 +1,9 @@
 import { createAction, props } from '@ngrx/store';
-import { Household } from './household.state';
+import {
+  Household,
+  HouseholdMember,
+  HouseholdActivity,
+} from '../../models/household.model';
 
 // Load Households
 export const loadHouseholds = createAction('[Household] Load Households');
@@ -11,7 +15,7 @@ export const loadHouseholdsSuccess = createAction(
 
 export const loadHouseholdsFailure = createAction(
   '[Household] Load Households Failure',
-  props<{ error: string }>()
+  props<{ error: any }>()
 );
 
 // Create Household
@@ -27,7 +31,7 @@ export const createHouseholdSuccess = createAction(
 
 export const createHouseholdFailure = createAction(
   '[Household] Create Household Failure',
-  props<{ error: string }>()
+  props<{ error: any }>()
 );
 
 // Update Household
@@ -43,7 +47,7 @@ export const updateHouseholdSuccess = createAction(
 
 export const updateHouseholdFailure = createAction(
   '[Household] Update Household Failure',
-  props<{ error: string }>()
+  props<{ error: any }>()
 );
 
 // Delete Household
@@ -59,7 +63,54 @@ export const deleteHouseholdSuccess = createAction(
 
 export const deleteHouseholdFailure = createAction(
   '[Household] Delete Household Failure',
-  props<{ error: string }>()
+  props<{ error: any }>()
+);
+
+// Member Management
+export const addMember = createAction(
+  '[Household] Add Member',
+  props<{ householdId: string; email: string; role: string }>()
+);
+
+export const addMemberSuccess = createAction(
+  '[Household] Add Member Success',
+  props<{ member: HouseholdMember }>()
+);
+
+export const addMemberFailure = createAction(
+  '[Household] Add Member Failure',
+  props<{ error: any }>()
+);
+
+export const removeMember = createAction(
+  '[Household] Remove Member',
+  props<{ householdId: string; memberId: string }>()
+);
+
+export const removeMemberSuccess = createAction(
+  '[Household] Remove Member Success',
+  props<{ householdId: string; memberId: string }>()
+);
+
+export const removeMemberFailure = createAction(
+  '[Household] Remove Member Failure',
+  props<{ error: any }>()
+);
+
+// Activity Tracking
+export const loadActivities = createAction(
+  '[Household] Load Activities',
+  props<{ householdId: string }>()
+);
+
+export const loadActivitiesSuccess = createAction(
+  '[Household] Load Activities Success',
+  props<{ activities: HouseholdActivity[] }>()
+);
+
+export const loadActivitiesFailure = createAction(
+  '[Household] Load Activities Failure',
+  props<{ error: any }>()
 );
 
 // Select Household

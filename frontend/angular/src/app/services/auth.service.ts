@@ -1,6 +1,6 @@
 import { Injectable, inject, PLATFORM_ID } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, tap, map } from 'rxjs';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { BehaviorSubject, Observable, tap, map, throwError } from 'rxjs';
 import { Router } from '@angular/router';
 import { RegisterData } from '../models/user.model';
 import { User } from '../store/user/user.state';
@@ -26,7 +26,8 @@ export class AuthService {
 
   constructor() {
     if (this.isBrowser) {
-      const storedUser = localStorage.getItem('user');
+      const storedUser =
+        localStorage.getItem('user') || sessionStorage.getItem('user');
       if (storedUser) {
         this.userSubject.next(JSON.parse(storedUser));
       }
@@ -35,13 +36,18 @@ export class AuthService {
 
   getAuthorizationHeader(): string | null {
     if (this.isBrowser) {
-      const token = localStorage.getItem('token');
+      const token =
+        localStorage.getItem('token') || sessionStorage.getItem('token');
       return token ? `Bearer ${token}` : null;
     }
     return null;
   }
 
-  login(email: string, password: string): Observable<User> {
+  login(
+    email: string,
+    password: string,
+    rememberMe: boolean = false
+  ): Observable<User> {
     this.loadingSubject.next(true);
     this.errorSubject.next(null);
 
@@ -63,13 +69,14 @@ export class AuthService {
 
             // Store auth data
             if (this.isBrowser) {
-              localStorage.setItem('token', response.access_token);
-              localStorage.setItem('user', JSON.stringify(user));
+              const storage = rememberMe ? localStorage : sessionStorage;
+              storage.setItem('token', response.access_token);
+              storage.setItem('user', JSON.stringify(user));
 
               // Set cookie for middleware
               Cookies.set('token', response.access_token, {
                 path: '/',
-                expires: 7,
+                expires: rememberMe ? 30 : undefined, // 30 days if remember me is checked
                 secure: true,
                 sameSite: 'strict',
               });
@@ -79,16 +86,7 @@ export class AuthService {
             this.loadingSubject.next(false);
             this.errorSubject.next(null);
           },
-          error: (error) => {
-            if (this.isBrowser) {
-              localStorage.removeItem('token');
-              localStorage.removeItem('user');
-              Cookies.remove('token', { path: '/' });
-            }
-            this.userSubject.next(null);
-            this.errorSubject.next(error.error?.message || 'Login failed');
-            this.loadingSubject.next(false);
-          },
+          error: (error) => this.handleError(error),
           complete: () => {
             this.loadingSubject.next(false);
           },
@@ -103,11 +101,39 @@ export class AuthService {
       );
   }
 
+  private handleError(error: HttpErrorResponse): void {
+    let errorMessage = 'An error occurred during login';
+
+    if (error.status === 401) {
+      errorMessage = 'Invalid email or password';
+    } else if (error.status === 429) {
+      errorMessage = 'Too many login attempts. Please try again later';
+    } else if (error.status === 0) {
+      errorMessage = 'Unable to connect to the server';
+    } else if (error.error?.message) {
+      errorMessage = error.error.message;
+    }
+
+    if (this.isBrowser) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      sessionStorage.removeItem('token');
+      sessionStorage.removeItem('user');
+      Cookies.remove('token', { path: '/' });
+    }
+
+    this.userSubject.next(null);
+    this.errorSubject.next(errorMessage);
+    this.loadingSubject.next(false);
+  }
+
   logout(): Observable<void> {
     // Clear stored data
     if (this.isBrowser) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
+      sessionStorage.removeItem('token');
+      sessionStorage.removeItem('user');
       Cookies.remove('token', { path: '/' });
     }
 
@@ -180,12 +206,11 @@ export class AuthService {
             };
 
             if (this.isBrowser) {
-              localStorage.setItem('token', response.access_token);
-              localStorage.setItem('user', JSON.stringify(user));
+              sessionStorage.setItem('token', response.access_token);
+              sessionStorage.setItem('user', JSON.stringify(user));
 
               Cookies.set('token', response.access_token, {
                 path: '/',
-                expires: 7,
                 secure: true,
                 sameSite: 'strict',
               });
@@ -195,18 +220,7 @@ export class AuthService {
             this.loadingSubject.next(false);
             this.errorSubject.next(null);
           },
-          error: (error) => {
-            if (this.isBrowser) {
-              localStorage.removeItem('token');
-              localStorage.removeItem('user');
-              Cookies.remove('token', { path: '/' });
-            }
-            this.userSubject.next(null);
-            this.errorSubject.next(
-              error.error?.message || 'Registration failed'
-            );
-            this.loadingSubject.next(false);
-          },
+          error: (error) => this.handleError(error),
           complete: () => {
             this.loadingSubject.next(false);
           },

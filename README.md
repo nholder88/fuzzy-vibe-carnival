@@ -4,7 +4,7 @@ A microservices-based application designed to streamline household management, i
 
 ## Tech Stack
 
-- **Frontend:** React (Next.js) with TypeScript
+- **Frontend:** Angular with TypeScript
 - **Backend Services:**
   - **Authentication Service:** NestJS with JWT, OAuth2, RBAC, and Passport
   - **Chore Management:** Node.js (Express.js)
@@ -18,6 +18,99 @@ A microservices-based application designed to streamline household management, i
   - PostgreSQL for relational data storage
   - Terraform for infrastructure as code (IaC)
 - **Authentication:** Auth0 or Firebase Authentication
+
+## Development Environment Setup
+
+This project uses Docker and VS Code's Remote Containers for development. The development environment includes all necessary services and tools for local development.
+
+### Prerequisites
+
+- Docker Desktop
+- VS Code with "Remote - Containers" extension
+- Git
+
+### Getting Started
+
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd home-organization-system
+   ```
+
+2. Open the project in VS Code:
+   ```bash
+   code .
+   ```
+
+3. When prompted, click "Reopen in Container" or use the command palette (F1) and select "Remote-Containers: Reopen in Container"
+
+4. Wait for the container to build and initialize (this might take a few minutes the first time)
+
+### Development Services
+
+The development environment includes the following services:
+
+- Frontend (Angular): http://localhost:4200
+- Auth Service: http://localhost:3003
+- Chore Service: http://localhost:3001
+- Inventory Service: http://localhost:8000
+- Shopping Service: http://localhost:5000
+- Household Service: http://localhost:3002
+
+### Development Tools
+
+- PgAdmin: http://localhost:5050
+  - Default email: admin@localhost
+  - Default password: admin
+  - Connect to PostgreSQL using:
+    - Host: postgres
+    - Port: 5432
+    - Username: dev_user
+    - Password: dev_password
+
+- Kafka UI: http://localhost:8080
+  - View and manage Kafka topics and messages
+
+### Environment Variables
+
+The following environment variables can be set to override defaults:
+
+- `POSTGRES_USER`: PostgreSQL username (default: dev_user)
+- `POSTGRES_PASSWORD`: PostgreSQL password (default: dev_password)
+- `JWT_SECRET`: JWT secret for authentication (default: dev_jwt_secret_change_in_production)
+- `PGADMIN_EMAIL`: PgAdmin email (default: admin@localhost)
+- `PGADMIN_PASSWORD`: PgAdmin password (default: admin)
+
+### Development Workflow
+
+1. All code changes are automatically reflected in the container
+2. Use the integrated terminal in VS Code to run commands
+3. The development environment includes hot-reloading for all services
+4. Debug configurations are pre-configured for all services
+
+### Troubleshooting
+
+1. If services fail to start:
+   - Check the logs using `docker-compose logs <service-name>`
+   - Ensure all required ports are available
+   - Verify Docker has enough resources allocated
+
+2. If the container fails to build:
+   - Check Docker Desktop is running
+   - Ensure you have enough disk space
+   - Try rebuilding the container using the command palette
+
+3. If you need to reset the development environment:
+   ```bash
+   docker-compose down -v
+   docker-compose up -d
+   ```
+
+### Security Notes
+
+- The development environment uses default credentials for local development
+- Never use these credentials in production
+- Always use proper secrets management in production environments
 
 ## Getting Started
 

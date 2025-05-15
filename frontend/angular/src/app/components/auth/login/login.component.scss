@@ -2,7 +2,8 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  min-height: 100vh;
+  padding: 20px;
   background-color: #f5f5f5;
 }
 
@@ -10,43 +11,74 @@
   width: 100%;
   max-width: 400px;
   padding: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.form-field {
-  margin-bottom: 16px;
+mat-card-header {
+  margin-bottom: 20px;
+  justify-content: center;
+}
+
+mat-card-title {
+  font-size: 24px;
+  font-weight: 500;
 }
 
 .full-width {
   width: 100%;
+  margin-bottom: 16px;
 }
 
-.form-actions {
-  display: flex;
-  justify-content: center;
-  margin-top: 24px;
-}
-
-.login-button {
-  width: 100%;
-  height: 40px;
+.remember-me {
+  margin: 16px 0;
 }
 
 .error-message {
   color: #f44336;
-  margin-top: 16px;
+  margin: 16px 0;
   text-align: center;
+  font-size: 14px;
 }
 
+mat-card-actions {
+  display: flex;
+  justify-content: space-between;
+  padding: 16px 0 0;
+  margin: 0;
+}
+
+.forgot-password,
 .register-link {
-  text-align: center;
-  margin-top: 16px;
+  text-decoration: none;
+  color: #1976d2;
+  font-size: 14px;
 
-  a {
-    color: #3f51b5;
-    text-decoration: none;
+  &:hover {
+    text-decoration: underline;
+  }
+}
 
-    &:hover {
-      text-decoration: underline;
-    }
+button[type="submit"] {
+  height: 48px;
+  font-size: 16px;
+
+  mat-spinner {
+    margin: 0 auto;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 480px) {
+  .login-card {
+    padding: 16px;
+  }
+
+  mat-card-title {
+    font-size: 20px;
+  }
+
+  button[type="submit"] {
+    height: 40px;
+    font-size: 14px;
   }
 }

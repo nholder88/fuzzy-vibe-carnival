@@ -4,7 +4,7 @@ import { RegisterData } from '../../models/user.model';
 
 export const login = createAction(
   '[User] Login',
-  props<{ email: string; password: string }>()
+  props<{ email: string; password: string; rememberMe: boolean }>()
 );
 
 export const loginSuccess = createAction(
@@ -19,6 +19,8 @@ export const loginFailure = createAction(
 
 export const logout = createAction('[User] Logout');
 
+export const logoutSuccess = createAction('[User] Logout Success');
+
 export const loadUser = createAction('[User] Load User');
 
 export const loadUserSuccess = createAction(
@@ -31,7 +33,15 @@ export const loadUserFailure = createAction(
   props<{ error: string }>()
 );
 
-export const register = createAction('[User] Register', props<RegisterData>());
+export const register = createAction(
+  '[User] Register',
+  props<{
+    email: string;
+    password: string;
+    firstName?: string;
+    lastName?: string;
+  }>()
+);
 
 export const registerSuccess = createAction(
   '[User] Register Success',
