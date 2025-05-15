@@ -6,8 +6,14 @@ import {
   UpdateDateColumn,
   BeforeInsert,
   BeforeUpdate,
+  ManyToMany,
+  OneToMany,
+  JoinTable,
 } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import { Role } from '../../roles/entities/role.entity';
+import { Session } from '../../sessions/entities/session.entity';
+import { OAuthProvider } from '../../oauth/entities/oauth-provider.entity';
 
 @Entity('users')
 export class User {
@@ -27,10 +33,32 @@ export class User {
   lastName: string;
 
   @Column({ default: false })
-  isVerified: boolean;
+  isEmailVerified: boolean;
+
+  @Column({ nullable: true })
+  emailVerificationToken: string;
+
+  @Column({ nullable: true })
+  passwordResetToken: string;
+
+  @Column({ nullable: true })
+  passwordResetExpires: Date;
+
+  @Column({ default: true })
+  isActive: boolean;
 
   @Column({ nullable: true })
   householdId: string;
+
+  @ManyToMany(() => Role)
+  @JoinTable()
+  roles: Role[];
+
+  @OneToMany(() => Session, session => session.user)
+  sessions: Session[];
+
+  @OneToMany(() => OAuthProvider, provider => provider.user)
+  oauthProviders: OAuthProvider[];
 
   @CreateDateColumn()
   createdAt: Date;
