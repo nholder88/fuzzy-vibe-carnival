@@ -1,14 +1,17 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { of, Observable } from 'rxjs';
+import { of } from 'rxjs';
 import { map, mergeMap, catchError, tap } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import * as UserActions from './user.actions';
 import { AuthService } from '../../services/auth.service';
-import { Action } from '@ngrx/store';
 
 @Injectable()
 export class UserEffects {
+  private actions$ = inject(Actions);
+  private authService = inject(AuthService);
+  private router = inject(Router);
+
   login$ = createEffect(() =>
     this.actions$.pipe(
       ofType(UserActions.login),
@@ -104,10 +107,4 @@ export class UserEffects {
       ),
     { dispatch: false }
   );
-
-  constructor(
-    private actions$: Actions,
-    private authService: AuthService,
-    private router: Router
-  ) {}
 }
